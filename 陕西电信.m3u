@@ -1,7 +1,8 @@
 #EXTM3U
 
-#EXTINF:-1,Example Channel 1
-http://example.com/stream1.m3u8
-
-#EXTINF:-1,Example Channel 2
-http://example.com/stream2.m3u8
+#EXTINF:-1,陕西二套
+http://gxlive.snrtv.com/sx1-SD.m3u8
+#EXTINF:-1,陕西二套
+http://gxlive.snrtv.com/sx2-SD.m3u8
+#EXTIFI:-1,陕西三套
+http://gxlive.snrtv.com/sx3-SD.m3u8
