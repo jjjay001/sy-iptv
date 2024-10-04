@@ -12,3 +12,9 @@ http://gxlive.snrtv.com/sx4-SD.m3u8
 http://gxlive.snrtv.com/sx5-SD.m3u8
 #EXTINF:-1,陕西七套（体育）
 http://gxlive.snrtv.com/sx7-SD.m3u8
+#EXTINF:-1,陕西农林
+http://gxlive.snrtv.com/nlws-SD.m3u8
+#EXTINF:-1,陕西卫视
+http://202.100.46.58:9901/tsfile/live/1017-1.m3u8
+#EXTINF:-1,陕西卫视2
+http://gxlive.snrtv.com/sxws-SD.m3u8
