@@ -1,8 +1,14 @@
 #EXTM3U
 
-#EXTINF:-1,陕西二套
+#EXTINF:-1,陕西一套（新闻）
 http://gxlive.snrtv.com/sx1-SD.m3u8
-#EXTINF:-1,陕西二套
+#EXTINF:-1,陕西二套（都市）
 http://gxlive.snrtv.com/sx2-SD.m3u8
-#EXTIFI:-1,陕西三套
+#EXTIFI:-1,陕西三套（生活）
 http://gxlive.snrtv.com/sx3-SD.m3u8
+#EXTINF:-1,陕西四套（影视）
+http://gxlive.snrtv.com/sx4-SD.m3u8
+#EXTINF:-1,陕西五套
+http://gxlive.snrtv.com/sx5-SD.m3u8
+#EXTIFI:-1,陕西六套
+http://gxlive.snrtv.com/sx6-SD.m3u8
