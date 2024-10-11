@@ -16,3 +16,5 @@ http://gxlive.snrtv.com/sx7-SD.m3u8
 http://gxlive.snrtv.com/nlws-SD.m3u8
 #EXTINF:-1,陕西卫视
 http://gxlive.snrtv.com/sxws-SD.m3u8
+#EXTINF:-1,RTP Stream
+rtp://239.109.205.107:8792
