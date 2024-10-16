@@ -1,0 +1,38 @@
+fetch_live_url.yml 示例内容：
+
+name: Fetch Shaanxi TV Live URL
+
+on:
+  schedule:
+    # 每天早上 6 点自动运行（使用 cron 表达式）
+    - cron: "0 6 * * *"
+
+jobs:
+  fetch_live_url:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install beautifulsoup4 requests
+    
+    - name: Run Python script
+      run: |
+        python your_script_name.py
+
+    - name: Commit live URL
+      run: |
+        git config --local user.email "you@example.com"
+        git config --local user.name "GitHub Action"
+        git add live_url.txt
+        git commit -m "Update live URL"
+        git push
