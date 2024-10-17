@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 
 # 设置目标URL
-url = "http://m.snrtv.com/snrtv_tv/index.html"  # 假设这个是陕西广播电视台的直播页面URL
+url = "http://m.snrtv.com/index.php?m=playlist_tv&channel=nl"  # 假设这个是陕西广播电视台的直播页面URL
 
 # 获取网页内容
 response = requests.get(url)
