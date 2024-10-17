@@ -38,8 +38,4 @@ jobs:
           git add .
           git commit -m "添加sxtv_live.m3u文件"
           git push origin main
-          git commit *.txt -m "Add generated file"
-          git commit *.m3u -m "Add generated file"
-          #git pull --rebase
-          git push -f
           exit 0
