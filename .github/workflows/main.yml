@@ -37,6 +37,7 @@ jobs:
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/jjjay001/sy-iptv.git
           git add .
           git commit -m "添加sxtv_live.m3u文件"
+          git push origin main
           git commit *.txt -m "Add generated file"
           git commit *.m3u -m "Add generated file"
           #git pull --rebase
