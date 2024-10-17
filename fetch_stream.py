@@ -61,7 +61,7 @@ LiveStreamGrabber.prototype.loadStream = function() {
     }
 };
 
-// 使用示例
+# 使用示例
 var streamGrabber = new LiveStreamGrabber('http://live.snrtv.com/', 0, null, 10000);
 streamGrabber.loadStream();
     if live_url:
