@@ -31,8 +31,9 @@ jobs:
         
       - name: 提交
         run: |
-          git config --local user.email "315723172@qq.com"
-          git config --local user.name "jjjay001"
+          git config --global user.email "315723172@qq.com"
+          git config --global user.name "jjjay001"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/jjjay001/sy-iptv.git
           git add .
           git commit *.txt -m "Add generated file"
           git commit *.m3u -m "Add generated file"
