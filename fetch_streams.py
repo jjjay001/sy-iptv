@@ -29,14 +29,8 @@ try:
     # 定义滑动操作
     action = ActionChains(driver)
 
-    # 滑动选择多个频道
-    for _ in range(5):  # 假设要滑动5次
-        action.click_and_hold(channel_selector).move_by_offset(-300, 0).release().perform()  # 向左滑动
-        time.sleep(1)  # 等待每次滑动的动画完成
-
-        # 等待视频源加载
-        time.sleep(2)  # 等待视频加载
-
+    # 循环抓取频道直播源，每次右滑后再抓取下一个
+    for _ in range(5):  # 假设抓取5个频道
         # 查找并获取视频源
         try:
             live_video = driver.find_element(By.TAG_NAME, 'video')
@@ -46,6 +40,10 @@ try:
                 print(f"找到直播源: {live_url}")
         except Exception as e:
             print(f"未找到视频源: {e}")
+
+        # 模拟向右滑动操作
+        action.click_and_hold(channel_selector).move_by_offset(-300, 0).release().perform()  # 向右滑动
+        time.sleep(2)  # 等待滑动动画和下一个频道加载
 
 except Exception as e:
     print(f"发生错误: {e}")
