@@ -1,6 +1,6 @@
 fetch_live_url.yml 示例内容：
 
-name: Fetch Shaanxi TV Live URL
+name: gan
 
 on:
   schedule:
