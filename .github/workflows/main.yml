@@ -18,12 +18,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.13
+          python-version: 3.9
 
       - name: Install dependencies
       
         run:  
-             pip install selenium requests futures eventlet --upgrade pip
+             pip install selenium requests futures eventlet
 
       - name: Run fetch_stream
         run: python ${{ github.workspace }}/fetch_stream.py
