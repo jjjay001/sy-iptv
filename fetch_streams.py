@@ -1,7 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
 import time
 
 # 设置Selenium的Chrome选项（可选）
@@ -22,41 +21,31 @@ try:
     driver.get(url)
 
     # 等待页面加载
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CLASS_NAME, 'channel-selector'))  # 替换为实际的频道选择器类名
-    )
+    time.sleep(5)  # 根据页面加载时间调整
 
-    # 假设频道选择器是一个可滚动的容器
-    channel_selector = driver.find_element(By.CLASS_NAME, 'channel-selector')  # 替换为实际选择器
+    # 找到频道选择器
+    channel_selector = driver.find_element(By.CLASS_NAME, 'channel-selector')  # 替换为实际的频道选择器类名
 
-    # 滑动到所有频道
-    while True:
-        # 获取当前显示的频道
-        channels = channel_selector.find_elements(By.CLASS_NAME, 'channel-item')  # 替换为实际频道项的类名
-        for index, channel in enumerate(channels, start=1):
-            # 点击频道以加载视频源
-            channel.click()
-            time.sleep(2)  # 等待视频源加载
+    # 定义滑动操作
+    action = ActionChains(driver)
 
-            # 获取视频标签
-            try:
-                live_video = WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.TAG_NAME, 'video'))
-                )
-                live_url = live_video.get_attribute('src')
-                if live_url:  # 确保URL不为空
-                    live_sources.append(live_url)
-                    print(f"找到直播源 {index}: {live_url}")
-            except Exception as e:
-                print(f"未找到视频源: {e}")
+    # 滑动选择多个频道
+    for _ in range(5):  # 假设要滑动5次
+        action.click_and_hold(channel_selector).move_by_offset(-300, 0).release().perform()  # 向左滑动
+        time.sleep(1)  # 等待每次滑动的动画完成
 
-        # 检查是否还有更多频道可供滑动
-        driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", channel_selector)
-        time.sleep(1)  # 等待滚动
+        # 等待视频源加载
+        time.sleep(2)  # 等待视频加载
 
-        # 如果频道选择器滚动到顶端，结束循环
-        if len(live_sources) >= len(channels):  # 这里可以根据实际情况调整条件
-            break
+        # 查找并获取视频源
+        try:
+            live_video = driver.find_element(By.TAG_NAME, 'video')
+            live_url = live_video.get_attribute('src')
+            if live_url:  # 确保URL不为空
+                live_sources.append(live_url)
+                print(f"找到直播源: {live_url}")
+        except Exception as e:
+            print(f"未找到视频源: {e}")
 
 except Exception as e:
     print(f"发生错误: {e}")
