@@ -9,7 +9,7 @@ http://gxlive.snrtv.com/sx3-SD.m3u8
 #EXTINF:-1,陕西四套（影视）
 http://gxlive.snrtv.com/sx4-SD.m3u8
 #EXTINF:-1,陕西五套（公共）
-http://gxlive.snrtv.com/sx5-SD.m3u8
+http://tvplay.lejogo.com/sxtv5/cnwest.m3u8?auth_token=1909756800-20226157-2022618-ff6b71f2cbc1c9b95d91af67b1bac497
 #EXTINF:-1,陕西六-验证
 http://tvplay.lejogo.com/sxtv6/cnwest.m3u8?auth_token=1909756800-20226157-2022618-ff6b71f2cbc1c9b95d91af67b1bac497
 #EXTINF:-1,陕西七套（体育）
