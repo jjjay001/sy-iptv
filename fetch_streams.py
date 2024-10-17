@@ -17,18 +17,23 @@ live_sources = []
 
 try:
     # 打开目标网页
-    url = "http://m.snrtv.com/snrtv_tv/index.html"  # 替换为实际的直播页面URL
+    url = "https://www.example.com/live"  # 替换为实际的直播页面URL
     driver.get(url)
 
-    # 等待动态内容加载，例如查找某个标签
-    live_source = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.TAG_NAME, 'video'))  # 等待video标签出现
+    # 等待动态内容加载，例如查找所有视频标签
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_all_elements_located((By.TAG_NAME, 'video'))  # 等待video标签出现
     )
 
-    # 获取直播源的URL
-    live_url = live_source.get_attribute('src')
-    live_sources.append(live_url)
-    print(f"找到直播源: {live_url}")
+    # 获取所有的video标签
+    live_videos = driver.find_elements(By.TAG_NAME, 'video')
+
+    # 遍历每个video标签，获取其src属性
+    for index, video in enumerate(live_videos, start=1):
+        live_url = video.get_attribute('src')
+        if live_url:  # 确保URL不为空
+            live_sources.append(live_url)
+            print(f"找到直播源 {index}: {live_url}")
 
 except Exception as e:
     print(f"发生错误: {e}")
