@@ -6,7 +6,7 @@ on:
   schedule:
     # 每天早上 6 点自动运行（使用 cron 表达式）
     - cron: "0 6 * * *"
-  workflow_dispatch:  # 允许手动触发
+workflow_dispatch:  # 允许手动触发
     inputs:
       log_level:
         description: 'Logging level'
