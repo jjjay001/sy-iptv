@@ -1,7 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
-import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 # 设置Selenium的Chrome选项（可选）
 options = webdriver.ChromeOptions()
@@ -20,30 +20,15 @@ try:
     url = "http://m.snrtv.com/snrtv_tv/index.html"  # 替换为实际的直播页面URL
     driver.get(url)
 
-    # 等待页面加载
-    time.sleep(5)  # 根据页面加载时间调整
+    # 等待动态内容加载，例如查找某个标签
+    live_source = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.TAG_NAME, 'video'))  # 等待video标签出现
+    )
 
-    # 找到频道选择器
-    channel_selector = driver.find_element(By.CLASS_NAME, 'channel-selector')  # 替换为实际的频道选择器类名
-
-    # 定义滑动操作
-    action = ActionChains(driver)
-
-    # 循环抓取频道直播源，每次右滑后再抓取下一个
-    for _ in range(5):  # 假设抓取5个频道
-        # 查找并获取视频源
-        try:
-            live_video = driver.find_element(By.TAG_NAME, 'video')
-            live_url = live_video.get_attribute('src')
-            if live_url:  # 确保URL不为空
-                live_sources.append(live_url)
-                print(f"找到直播源: {live_url}")
-        except Exception as e:
-            print(f"未找到视频源: {e}")
-
-        # 模拟向右滑动操作
-        action.click_and_hold(channel_selector).move_by_offset(-300, 0).release().perform()  # 向右滑动
-        time.sleep(2)  # 等待滑动动画和下一个频道加载
+    # 获取直播源的URL
+    live_url = live_source.get_attribute('src')
+    live_sources.append(live_url)
+    print(f"找到直播源: {live_url}")
 
 except Exception as e:
     print(f"发生错误: {e}")
