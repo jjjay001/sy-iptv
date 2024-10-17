@@ -27,7 +27,7 @@ jobs:
              pip install selenium requests futures eventlet
 
       - name: Run fetch_stream
-        run: python ${{ github.workspace }}/fetch_stream.py
+        run: python ${{ github.workspace }}/fetch_streams.py
 
         
       - name: 提交
