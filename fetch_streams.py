@@ -17,7 +17,7 @@ live_sources = []
 
 try:
     # 打开目标网页
-    url = "http://m.snrtv.com/snrtv_tv/index.html"  # 替换为实际的直播页面URL
+    url = "live.snrtv.com"  # 替换为实际的直播页面URL
     driver.get(url)
 
     # 等待动态内容加载，例如查找某个标签
