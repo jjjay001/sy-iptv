@@ -2,7 +2,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
 import time
 import traceback
 
@@ -45,9 +44,12 @@ try:
             # 保存当前的直播源URL
             current_url = video_element.get_attribute('src')
 
-            # 模拟向左滑动操作
-            action = ActionChains(driver)
-            action.move_by_offset(-100, 0).perform()  # 左滑动操作
+            # 滚动页面，确保视频元素可见
+            driver.execute_script("arguments[0].scrollIntoView();", video_element)
+            time.sleep(1)  # 等待滚动完成
+
+            # 使用JavaScript执行左滑操作 (模拟滑动到下一个频道)
+            driver.execute_script("window.scrollBy(-100, 0);")
             time.sleep(1)  # 等待滑动效果
 
             # 播放视频
