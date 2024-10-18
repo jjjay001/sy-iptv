@@ -47,7 +47,7 @@ try:
     # 通过鼠标拖动事件滑动切换频道
     action = ActionChains(driver)
 
-    channel_count = 10  # 假设有10个频道
+    channel_count = 9  # 假设有10个频道
     for i in range(1, channel_count + 1):
 
         print(f"滑动到频道 {i}")
@@ -66,11 +66,11 @@ try:
             # 不将第五次和第八次的直播源加入到live_sources列表中
             if current_live_url != default_live_url:
                 if i not in [5, 8]:  # 第五次和第八次不加入
-                    live_sources.append(current_live_url)
-                print(f"当前直播源: {current_live_url}")
+                    live_sources.append((channel_id, current_live_url))
+                print(f"{channel_id}: 当前直播源: {current_live_url}")
                 default_live_url = current_live_url  # 更新默认直播源为当前直播源
             else:
-                print(f"未检测到新直播源，当前仍为默认频道")
+                print(f"{channel_id}: 未检测到新直播源，当前仍为默认频道")
 
         except Exception as e:
             print(f"滑动操作失败: {e}")
@@ -88,7 +88,7 @@ finally:
 with open('live_streams.m3u', 'w') as f:
     f.write('#EXTM3U\n')
     for index, source in enumerate(live_sources, start=1):
-        f.write(f'#EXTINF:-1, Channel {index}\n')
+        f.write(f'#EXTINF:-1, Channel {channel_id}\n')
         f.write(f'{source}\n')
 
 print("已生成 live_streams.m3u 文件")
