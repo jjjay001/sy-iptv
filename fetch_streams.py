@@ -3,7 +3,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
-import json
 
 # 设置Selenium的Chrome选项
 options = webdriver.ChromeOptions()
@@ -17,45 +16,51 @@ driver = webdriver.Chrome(options=options)
 # 直播源URL列表
 live_sources = []
 
-def request_interceptor(request):
-    # 监听请求并获取 .m3u8 URL
-    if '.m3u8' in request['url']:
-        live_sources.append(request['url'])
-        print(f"捕获到直播源 URL: {request['url']}")
+# 启用网络监控
+driver.execute_cdp_cmd('Network.enable', {})
 
 try:
     # 打开目标网页
-    url = "http://live.snrtv.com"  # 替换为实际的直播页面URL
+    url = "http://m.snrtv.com/snrtv_tv/index.html"  # 替换为实际的直播页面URL
     driver.get(url)
 
-    # 等待页面完全加载并确保视频盒子加载完毕
+    # 等待页面完全加载并确保 videoBox 元素加载完毕
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.ID, 'videoBox'))
     )
 
-    # 启用网络监控
-    driver.execute_cdp_cmd('Network.enable', {})
-    
-    # 注册请求拦截器
-    driver.request_interceptor = request_interceptor
+    # 监听 XHR 请求
+    def intercept_request(request):
+        if '.m3u8' in request['url']:
+            live_sources.append(request['url'])
+            print(f"捕获到直播源 URL: {request['url']}")
 
-    # 查找频道列表元素
-    channel_list = driver.find_elements(By.CSS_SELECTOR, '.channel-class')  # 替换为实际频道列表的类名
+    driver.request_interceptor = intercept_request
 
     # 获取默认直播源
     video_element = driver.find_element(By.ID, 'videoBox')
     default_live_url = video_element.get_attribute('src')
-    live_sources.append(default_live_url)
-    print(f"找到默认直播源: {default_live_url}")
+    if default_live_url:
+        live_sources.append(default_live_url)
+        print(f"找到默认直播源: {default_live_url}")
+    else:
+        print("未能找到默认直播源")
 
-    # 循环遍历频道并点击
-    for index, channel in enumerate(channel_list):
+    # 切换频道
+    channel_names = ['star', 'nl', '1', '2', '3', '4', '5', '6', '7']  # 列出需要切换的频道名称
+    for channel in channel_names:
         try:
-            print(f"切换到频道: {channel.text}")
-            channel.click()  # 模拟点击频道
+            print(f"通过hash切换到频道: {channel}")
+            driver.execute_script(f"window.location.hash = '{channel}';")  # 通过hash切换频道
+            
+            # 等待新直播源加载
+            time.sleep(3)  # 根据需要调整等待时间
 
-            # 等待视频盒子更新
-            time.sleep(3)
+            # 检查是否有新的 XHR 请求
+            if not live_sources or (live_sources and live_sources[-1] == default_live_url):
+                print(f"未检测到新直播源，跳过频道: {channel}")
+            else:
+                print(f"成功切换到频道: {channel}")
 
         except Exception as e:
             print(f"切换频道时发生错误: {e}")
