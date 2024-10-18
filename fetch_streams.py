@@ -33,14 +33,15 @@ try:
     live_sources.append(default_live_url)
     print(f"找到默认直播源: {default_live_url}")
 
-    # 通过 JavaScript 动态获取滑动区域的位置和宽度
-    swiper_element = driver.find_element(By.CLASS_NAME, 'swiper-container')  # 替换为实际的滑动容器
-    swiper_position = swiper_element.location
-    swiper_size = swiper_element.size
+    # 获取页面的尺寸信息
+    window_size = driver.execute_script("return { width: window.innerWidth, height: window.innerHeight };")
+    screen_width = window_size['width']
+    screen_height = window_size['height']
 
-    start_x = swiper_position['x'] + swiper_size['width'] - 10  # 滑动的起点，接近容器右边
-    end_x = swiper_position['x'] + 10  # 滑动的终点，接近容器左边
-    start_y = swiper_position['y'] + swiper_size['height'] / 2  # 垂直居中
+    # 设置滑动的起点和终点位置
+    start_x = screen_width / 2 + 150  # 从屏幕中心偏右150
+    end_x = screen_width / 2 - 150  # 向左滑动至中心偏左150
+    y_position = screen_height / 3  # 屏幕上三分之一的高度
 
     # 通过鼠标拖动事件滑动切换频道
     action = ActionChains(driver)
@@ -48,7 +49,7 @@ try:
     for i in range(1, 10):  # 假设有10个频道
         print(f"滑动到频道 {i}")
         try:
-            action.move_to_element_with_offset(swiper_element, start_x, start_y).click_and_hold().move_by_offset(end_x - start_x, 0).release().perform()
+            action.move_by_offset(start_x, y_position).click_and_hold().move_by_offset(end_x - start_x, 0).release().perform()
             
             time.sleep(3)  # 等待滑动动画和视频切换
 
