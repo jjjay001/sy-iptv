@@ -42,15 +42,19 @@ try:
     start_x = screen_width * 3 / 4  # 从屏幕中间靠右 1/4 处开始
     y_position = screen_height / 3  # 纵向位置位于屏幕上三分之一
     move_distance = -100  # 设置每次滑动的距离
-
+    double_move_distance = move_distance * 2  # 设置双倍滑动距离
+    
     # 通过鼠标拖动事件滑动切换频道
     action = ActionChains(driver)
 
-    channel_count = 10  # 假设有10个频道
+    channel_count = 8  # 假设有10个频道
     for i in range(1, channel_count + 1):
-        if i == 9:  # 跳过频道9
-            print("跳过频道 9（购物台）")
-            continue
+        # 根据频道编号决定滑动距离
+        if i == 5 or i == 7:
+            move = double_move_distance  # 第五次和第八次滑动距离为其他滑动的两倍
+        else:
+            move = move_distance  # 其他滑动的距离
+
         print(f"滑动到频道 {i}")
         try:
             # 执行滑动操作
