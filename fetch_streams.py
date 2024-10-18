@@ -53,8 +53,15 @@ try:
             print(f"通过hash切换到频道: {channel}")
             driver.execute_script(f"window.location.hash = '{channel}';")  # 通过hash切换频道
             
-            # 等待新直播源加载
+            # 等待页面加载
             time.sleep(3)  # 根据需要调整等待时间
+            
+            # 确认页面是否刷新
+            current_url = driver.current_url
+            if f'#{channel}' in current_url:
+                print(f"成功切换到频道: {channel}，页面已刷新")
+            else:
+                print(f"切换频道: {channel} 后页面未刷新")
 
             # 检查是否有新的 XHR 请求
             if not live_sources or (live_sources and live_sources[-1] == default_live_url):
