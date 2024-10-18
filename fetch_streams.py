@@ -26,7 +26,7 @@ try:
         EC.presence_of_element_located((By.ID, 'programSwiper'))  # 确保页面加载完毕
     )
 
-    # 确保 Swiper 初始化完毕的轮询脚本
+    # 确保 Swiper 初始化完毕
     swiper_initialized = False
     for _ in range(10):  # 尝试10次，每次等待1秒
         swiper_initialized = driver.execute_script("""
@@ -55,7 +55,7 @@ try:
     for i in range(2, 11):  # 假设频道从2到10，你可以根据实际情况调整范围
         # 调用滑动的 JavaScript，使用 swiper.slideTo() 方法
         driver.execute_script(f"swiper.slideTo({i}, 1000, false);")
-        time.sleep(2)  # 等待滑动动画结束
+        time.sleep(1)  # 等待滑动动画结束
         
         # 获取当前直播源
         video_element = WebDriverWait(driver, 10).until(
@@ -63,7 +63,7 @@ try:
         )
         current_live_url = video_element.get_attribute('src')
 
-        if current_live_url not in live_sources:
+        if current_live_url != default_live_url:
             live_sources.append(current_live_url)
             print(f"当前直播源: {current_live_url}")
         else:
