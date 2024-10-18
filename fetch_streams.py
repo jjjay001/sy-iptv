@@ -17,7 +17,7 @@ driver = webdriver.Chrome(options=options)
 # 直播源URL列表
 live_sources = []
 # 频道名称映射
-channel_id = {
+channel_ys = {
     1: "农林卫视",
     2: "新闻综合",
     3: "都市青春",
@@ -105,8 +105,10 @@ finally:
 # 生成 .m3u 文件
 with open('live_streams.m3u', 'w') as f:
     f.write('#EXTM3U\n')
-    for index, (channel_id,source) in enumerate(live_sources,start=1):
-        f.write(f'#EXTINF:-1, {channel_id}\n')
+    for channel_id source, in live_sources:
+        channel_name = channel_ys.get(channel_id, "未知频道")  # 获取频道名称
+        # 写入频道信息，-1 表示持续时间未知
+        f.write(f'#EXTINF:-1, {channel_name}\n')
         f.write(f'{source}\n')
 
 print("已生成 live_streams.m3u 文件")
