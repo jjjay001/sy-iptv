@@ -47,13 +47,8 @@ try:
     # 通过鼠标拖动事件滑动切换频道
     action = ActionChains(driver)
 
-    channel_count = 8  # 假设有10个频道
+    channel_count = 10  # 假设有10个频道
     for i in range(1, channel_count + 1):
-        # 根据频道编号决定滑动距离
-        if i == 5 or i == 7:
-            move = double_move_distance  # 第五次和第八次滑动距离为其他滑动的两倍
-        else:
-            move = move_distance  # 其他滑动的距离
 
         print(f"滑动到频道 {i}")
         try:
@@ -68,8 +63,10 @@ try:
             )
             current_live_url = video_element.get_attribute('src')
 
+            # 不将第五次和第八次的直播源加入到live_sources列表中
             if current_live_url != default_live_url:
-                live_sources.append(current_live_url)
+                if i not in [5, 8]:  # 第五次和第八次不加入
+                    live_sources.append(current_live_url)
                 print(f"当前直播源: {current_live_url}")
                 default_live_url = current_live_url  # 更新默认直播源为当前直播源
             else:
