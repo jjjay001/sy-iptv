@@ -31,13 +31,13 @@ try:
     )
 
     # 假设我们需要抓取的频道数量
-    num_channels = 5  # 假设有5个频道
+    num_channels = 10  # 假设有10个频道
 
     for index in range(num_channels):
         try:
             # 获取当前直播源
             live_source = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.TAG_NAME, 'video'))
+                EC.visibility_of_element_located((By.TAG_NAME, 'video'))
             )
 
             # 获取直播源的URL
@@ -52,7 +52,6 @@ try:
             time.sleep(1)
 
             # 模拟向右滑动操作以切换到下一个频道
-            # 使用JavaScript直接操作视频元素以避免ElementNotInteractable错误
             actions.click_and_hold(live_source).move_by_offset(-500, 0).release().perform()
 
             # 等待切换后的视频加载
@@ -60,6 +59,18 @@ try:
 
         except Exception as e:
             print(f"获取频道 {index + 1} 时发生错误: {e}")
+
+        # 可能需要点击或处理动画元素
+        try:
+            # 如果存在播放动画元素，确保它们已隐藏
+            WebDriverWait(driver, 10).until(
+                EC.invisibility_of_element_located((By.CLASS_NAME, 'animationPlay'))
+            )
+            WebDriverWait(driver, 10).until(
+                EC.visibility_of_element_located((By.CLASS_NAME, 'animationPause'))
+            )
+        except Exception as e:
+            print(f"等待动画状态时发生错误: {e}")
 
 except Exception as e:
     print(f"发生错误: {e}")
