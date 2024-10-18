@@ -58,7 +58,7 @@ try:
 
     channel_count = 9  # 假设有10个频道
     for i in range(1, channel_count + 1):   
-	    move = move_distance  
+	move = move_distance  
         print(f"滑动到频道 {i}")
         try:
             # 执行滑动操作
