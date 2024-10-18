@@ -50,24 +50,22 @@ try:
     channel_names = ['star', 'nl', '1', '2', '3', '4', '5', '6', '7']  # 列出需要切换的频道名称
     for channel in channel_names:
         try:
-            print(f"通过hash切换到频道: {channel}")
-            driver.execute_script(f"window.location.hash = '{channel}';")  # 通过hash切换频道
+            print(f"通过调用 JS 切换到频道: {channel}")
+            # 调用 JS 函数或方法来切换频道，这里假设有个 switchChannel(channel) 方法
+            driver.execute_script(f"switchChannel('{channel}');")  # 替换为实际的 JS 方法
             
-            # 等待页面加载
+            # 等待新内容加载
             time.sleep(3)  # 根据需要调整等待时间
             
-            # 确认页面是否刷新
-            current_url = driver.current_url
-            if f'#{channel}' in current_url:
-                print(f"成功切换到频道: {channel}，页面已刷新")
-            else:
-                print(f"切换频道: {channel} 后页面未刷新")
-
             # 检查是否有新的 XHR 请求
-            if not live_sources or (live_sources and live_sources[-1] == default_live_url):
-                print(f"未检测到新直播源，跳过频道: {channel}")
+            new_video_element = driver.find_element(By.ID, 'videoBox')
+            current_live_url = new_video_element.get_attribute('src')
+
+            if current_live_url != default_live_url:
+                live_sources.append(current_live_url)
+                print(f"成功切换到频道: {channel}, 当前直播源: {current_live_url}")
             else:
-                print(f"成功切换到频道: {channel}")
+                print(f"未检测到新直播源，跳过频道: {channel}")
 
         except Exception as e:
             print(f"切换频道时发生错误: {e}")
