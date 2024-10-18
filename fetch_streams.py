@@ -34,34 +34,46 @@ try:
     num_channels = 5  # 假设有5个频道
 
     for index in range(num_channels):
-        # 获取当前直播源
-        live_source = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.TAG_NAME, 'video'))
+        # 获取当前视频元素并暂停播放
+        live_source = driver.find_element(By.TAG_NAME, 'video')
+        driver.execute_script("document.querySelector('video').pause();")
+
+        # 等待视频元素加载完成
+        WebDriverWait(driver, 10).until(
+            lambda driver: driver.execute_script("""
+                let video = document.querySelector('video');
+                return video && video.readyState === 4;
+            """)
         )
 
-        # 获取直播源的URL
+        # 获取当前直播源的 URL
         live_url = live_source.get_attribute('src')
         live_sources.append(live_url)
         print(f"找到频道 {index + 1} 的直播源: {live_url}")
 
-        # 暂停当前视频（通过执行JavaScript暂停）
-        driver.execute_script("document.querySelector('video').pause();")
+        # 滑动到下一个频道图标
+        # 假设频道图标的类名是 'channel-icon'，需要根据实际情况调整
+        channel_icons = driver.find_elements(By.CLASS_NAME, 'channel-icon')
+        
+        # 计算下一个频道的图标位置
+        if index < len(channel_icons) - 1:  # 避免越界
+            next_icon = channel_icons[index + 1]
+            driver.execute_script("arguments[0].scrollIntoView();", next_icon)
+            time.sleep(1)  # 等待动画完成
 
-        # 滑动前，确保视频元素可见
-        driver.execute_script("arguments[0].scrollIntoView();", live_source)
+            # 点击播放按钮
+            play_button = next_icon.find_element(By.CLASS_NAME, 'play-button')  # 假设播放按钮的类名是 'play-button'
+            play_button.click()
 
-        # 获取元素位置并检查它是否有大小
-        location = live_source.location
-        size = live_source.size
-
-        if size['width'] > 0 and size['height'] > 0:
-            # 只有在视频元素有可见尺寸时才滑动
-            actions.click_and_hold(live_source).move_by_offset(-500, 0).release().perform()
+            # 等待视频重新加载并获取新的直播源
+            WebDriverWait(driver, 10).until(
+                lambda driver: driver.execute_script("""
+                    let video = document.querySelector('video');
+                    return video && video.readyState === 4 && video.src;
+                """)
+            )
         else:
-            print(f"视频元素在频道 {index + 1} 不可见，跳过滑动")
-
-        # 等待切换后的视频加载
-        time.sleep(2)  # 可根据实际加载时间调整
+            print("已达到最后一个频道，停止滑动。")
 
 except Exception as e:
     print(f"发生错误: {e}")
