@@ -32,30 +32,12 @@ try:
     live_sources.append(default_live_url)
     print(f"找到默认直播源: {default_live_url}")
 
-    # 频道哈希映射
-    channel_hash_map = {
-        'star': 'star',
-        'nl': 'nl',
-        '1': '1',
-        '2': '2',
-        '3': '3',
-        '4': '4',
-        '5': '5',
-        '6': '6',
-        '7': '7',
-        '8': '8'
-    }
-
-    # 通过 hash 切换频道
-    for hash_key in channel_hash_map.keys():
-        print(f"通过 hash 切换到频道: {hash_key}")
-        driver.execute_script(f"window.location.hash = '{hash_key}';")
+    # 通过 swiper 左滑切换频道
+    for i in range(1, 10):  # 假设有10个频道
+        print(f"滑动到频道 {i}")
+        driver.execute_script(f"swiper.slideTo({i}, 1000, false);")  # 模拟滑动到下一个频道
+        time.sleep(3)  # 等待滑动动画和视频切换
         
-        # 触发可能的事件（例如更新） - 根据您的网页需要调整
-        driver.execute_script("window.dispatchEvent(new Event('hashchange'));")
-        
-        time.sleep(3)  # 等待页面根据 hash 更新
-
         # 获取当前直播源
         video_element = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, 'videoBox'))
