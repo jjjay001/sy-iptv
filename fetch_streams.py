@@ -26,12 +26,22 @@ try:
         EC.presence_of_element_located((By.ID, 'programSwiper'))  # 确保页面加载完毕
     )
 
-    # 确认 `swiper` 对象已经定义
-    driver.execute_script("""
-        if (typeof swiper === 'undefined') {
-            throw new Error('Swiper is not initialized');
-        }
-    """)
+    # 确保 Swiper 初始化完毕的轮询脚本
+    swiper_initialized = False
+    for _ in range(10):  # 尝试10次，每次等待1秒
+        swiper_initialized = driver.execute_script("""
+            if (typeof swiper !== 'undefined' && swiper.initialized) {
+                return true;
+            } else {
+                return false;
+            }
+        """)
+        if swiper_initialized:
+            print("Swiper 已初始化")
+            break
+        time.sleep(1)  # 等待1秒
+    if not swiper_initialized:
+        raise Exception("Swiper 未能初始化")
 
     # 获取默认直播源
     video_element = WebDriverWait(driver, 10).until(
