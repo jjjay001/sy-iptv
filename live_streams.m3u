@@ -1,1 +1,21 @@
 #EXTM3U
+#EXTINF:-1, 陕西卫视
+blob:http://live.snrtv.com/30438415-dee6-46a8-8b0d-18e28d088bff
+#EXTINF:-1, 新闻资讯
+blob:http://live.snrtv.com/bc40a808-734f-4348-8ccb-46c635efefe5
+#EXTINF:-1, 都市青春
+blob:http://live.snrtv.com/99eb7359-be81-4913-aa8d-b68f2db69d00
+#EXTINF:-1, 生活频道
+blob:http://live.snrtv.com/75c32f60-af6a-4a5c-96d2-ff82c5a3be9c
+#EXTINF:-1, 影视频道
+blob:http://live.snrtv.com/75c32f60-af6a-4a5c-96d2-ff82c5a3be9c
+#EXTINF:-1, 公共频道
+blob:http://live.snrtv.com/cb4999e9-39ef-4df3-b512-cda03738451b
+#EXTINF:-1, 乐家购物
+blob:http://live.snrtv.com/b2334e82-576c-4b9d-93e2-2b59996fc66a
+#EXTINF:-1, 体育休闲
+blob:http://live.snrtv.com/f102b95d-a359-4e88-9a63-4018945e2c98
+#EXTINF:-1, 农林卫视
+blob:http://live.snrtv.com/3fcbd84e-3ab7-4ca5-afad-cee21af9b58a
+#EXTINF:-1, 移动电视
+blob:http://live.snrtv.com/84825cb4-af69-43cb-9f74-c0529689f6f3
