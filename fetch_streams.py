@@ -26,7 +26,7 @@ channel_ys = {
     7: "陕西体育",
     9: "陕西移动"
 }
-    
+
 try:
     # 打开目标网页
     url = "http://m.snrtv.com/snrtv_tv/index.html"  # 替换为实际的直播页面URL
@@ -56,9 +56,9 @@ try:
     # 通过鼠标拖动事件滑动切换频道
     action = ActionChains(driver)
 
-    channel_count = 9  # 假设有10个频道
-    for i in range(1, channel_count + 1):   
-	move = move_distance  
+    channel_count = 9  # 假设有9个频道
+    for i in range(1, channel_count + 1):
+        move = move_distance  
         print(f"滑动到频道 {i}")
         try:
             # 执行滑动操作
@@ -72,8 +72,8 @@ try:
             )
             current_live_url = video_element.get_attribute('src')
 
-            # 获取频道 ID（假设可以通过一些方式获取，具体取决于你的页面结构）
-            channel_id = f"{i}"
+            # 获取频道 ID
+            channel_id = i  # 使用整数作为频道 ID
 
             # 不将第五次和第八次的直播源加入到live_sources列表中
             if current_live_url != default_live_url:
@@ -97,7 +97,7 @@ finally:
     driver.quit()
 
 # 生成 .m3u 文件
-with open('live_streams.m3u', 'w') as f:
+with open('live_streams.m3u', 'w', encoding='utf-8') as f:
     f.write('#EXTM3U\n')
     for channel_id, source in live_sources:
         channel_name = channel_ys.get(channel_id, "未知频道")  # 获取频道名称
