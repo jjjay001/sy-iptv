@@ -48,27 +48,23 @@ try:
             else:
                 print(f"频道 {index + 1} 的直播源 URL 为 None")
 
+            # 等待一段时间，确保视频缓冲完成
+            time.sleep(3)  # 根据需要调整等待时间
+
             # 暂停当前视频（通过执行JavaScript暂停）
             driver.execute_script("arguments[0].pause();", live_source)
 
             # 等待1秒，确保视频暂停后再进行切换
             time.sleep(1)
 
-            # 点击播放按钮，播放视频
-            play_button = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.CLASS_NAME, 'playBtn'))
+            # 点击点此暂停/换台的按钮
+            switch_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, 'p.BtnInfo'))
             )
-            play_button.click()
-
-            # 等待视频加载完成
-            time.sleep(2)
-
-            # 模拟向右滑动操作以切换到下一个频道
-            next_channel = driver.find_element(By.CLASS_NAME, 'animationPlay')  # 假设这是用于切换的元素
-            actions.click_and_hold(next_channel).move_by_offset(-200, 0).release().perform()
+            switch_button.click()  # 执行切换频道的操作
 
             # 等待切换后的视频加载
-            time.sleep(2)  # 可根据实际加载时间调整
+            time.sleep(3)  # 根据实际加载时间调整
 
         except Exception as e:
             print(f"获取频道 {index + 1} 时发生错误: {e}")
