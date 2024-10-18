@@ -38,8 +38,8 @@ try:
     screen_width = window_size['width']
     screen_height = window_size['height']
 
-    # 每次滑动的起点和终点位置
-    start_x = screen_width / 2  # 从屏幕中间开始
+    # 每次滑动的起点和纵向位置
+    start_x = screen_width * 3 / 4  # 从屏幕中间靠右 1/4 处开始
     y_position = screen_height / 3  # 纵向位置位于屏幕上三分之一
 
     # 通过鼠标拖动事件滑动切换频道
@@ -51,7 +51,7 @@ try:
         try:
             # 执行滑动操作，确保不会超出页面边界
             if i <= channel_count:  # 确保滑动频道的索引在有效范围内
-                action.move_by_offset(start_x + 50, y_position).click_and_hold()  # 向右偏移50
+                action.move_by_offset(start_x, y_position).click_and_hold()  # 向右偏移到指定起点
                 action.move_by_offset(-100, 0).release().perform()  # 向左滑动100（回到屏幕中间-50）
                 
                 time.sleep(3)  # 等待滑动动画和视频切换
