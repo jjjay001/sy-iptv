@@ -3,18 +3,27 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
+import json
 
 # 设置Selenium的Chrome选项
 options = webdriver.ChromeOptions()
 options.add_argument('--headless')  # 无头模式
 options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
+options.add_argument('--remote-debugging-port=9222')  # 启用DevTools
 
 # 启动Chrome浏览器
 driver = webdriver.Chrome(options=options)
 
 # 直播源URL列表
 live_sources = []
+
+# 创建请求捕获回调
+def request_intercepted(request):
+    if 'm3u8' in request['url']:  # 根据请求URL判断是否为直播源
+        if request['url'] not in live_sources:
+            live_sources.append(request['url'])
+            print(f"捕获到新的直播源: {request['url']}")
 
 try:
     # 打开目标网页
@@ -31,6 +40,10 @@ try:
     default_live_url = video_element.get_attribute('src')
     live_sources.append(default_live_url)
     print(f"找到默认直播源: {default_live_url}")
+
+    # 启用网络监控
+    driver.execute_cdp_cmd('Network.enable', {})
+    driver.request_interceptor = request_intercepted  # 设置请求捕获回调
 
     # 频道哈希映射
     channel_hash_map = {
