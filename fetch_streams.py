@@ -18,14 +18,13 @@ driver = webdriver.Chrome(options=options)
 live_sources = []
 # 频道名称映射
 channel_names = {
-    1: "陕西卫视",
-    2: "农林卫视",
-    3: "新闻综合",
-    4: "都市青春",
-    5: "陕西生活",
-    6: "陕西公共",
-    7: "陕西体育",
-    9: "陕西移动"
+    1: "农林卫视",
+    2: "新闻综合",
+    3: "都市青春",
+    4: "陕西生活",
+    5: "陕西公共",
+    6: "陕西体育",
+    7: "陕西移动"
 }
     
 try:
@@ -41,7 +40,7 @@ try:
     # 获取默认直播源
     video_element = driver.find_element(By.ID, 'videoBox')
     default_live_url = video_element.get_attribute('src')
-    live_sources.append(("默认频道", default_live_url))  # 使用默认频道名称
+    live_sources.append(("陕西卫视", default_live_url))  # 使用默认频道名称
     print(f"找到默认直播源: {default_live_url}")
 
     # 获取页面的尺寸信息
@@ -106,7 +105,7 @@ finally:
 # 生成 .m3u 文件
 with open('live_streams.m3u', 'w') as f:
     f.write('#EXTM3U\n')
-    for channel_id, source in live_sources:
+    for index, (source,name) in enumerate(live_sources, start=1):
         f.write(f'#EXTINF:-1, {name}\n')
         f.write(f'{source}\n')
 
