@@ -1,7 +1,7 @@
 import requests
 
 # XHR 请求的 URL，这里需要根据实际情况修改
-url = "https://live.snrtv.com/api/live-streams"  # 假设的 API 端点
+url = "live.snrtv.com"  # 假设的 API 端点
 
 # 发送请求
 try:
