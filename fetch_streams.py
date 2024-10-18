@@ -45,30 +45,36 @@ try:
     # 通过鼠标拖动事件滑动切换频道
     action = ActionChains(driver)
 
-    for i in range(1, 10):  # 假设有10个频道
+    channel_count = 10  # 假设有10个频道
+    for i in range(1, channel_count + 1):
         print(f"滑动到频道 {i}")
         try:
-            # 执行滑动操作
-            action.move_by_offset(start_x + 50, y_position).click_and_hold()  # 向右偏移50
-            action.move_by_offset(-100, 0).release().perform()  # 向左滑动100（回到屏幕中间-50）
-            
-            time.sleep(3)  # 等待滑动动画和视频切换
+            # 执行滑动操作，确保不会超出页面边界
+            if i <= channel_count:  # 确保滑动频道的索引在有效范围内
+                action.move_by_offset(start_x + 50, y_position).click_and_hold()  # 向右偏移50
+                action.move_by_offset(-100, 0).release().perform()  # 向左滑动100（回到屏幕中间-50）
+                
+                time.sleep(3)  # 等待滑动动画和视频切换
 
-            # 获取当前直播源
-            video_element = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.ID, 'videoBox'))
-            )
-            current_live_url = video_element.get_attribute('src')
+                # 获取当前直播源
+                video_element = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.ID, 'videoBox'))
+                )
+                current_live_url = video_element.get_attribute('src')
 
-            if current_live_url != default_live_url:
-                live_sources.append(current_live_url)
-                print(f"当前直播源: {current_live_url}")
+                if current_live_url != default_live_url:
+                    live_sources.append(current_live_url)
+                    print(f"当前直播源: {current_live_url}")
+                else:
+                    print(f"未检测到新直播源，当前仍为默认频道")
+
+                # 更新默认直播源为当前直播源
+                default_live_url = current_live_url
+
             else:
-                print(f"未检测到新直播源，当前仍为默认频道")
+                print("已到达频道末尾，停止滑动")
+                break
 
-            # 更新默认直播源为当前直播源
-            default_live_url = current_live_url
-            
         except Exception as e:
             print(f"滑动操作失败: {e}")
 
