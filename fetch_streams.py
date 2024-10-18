@@ -26,10 +26,16 @@ try:
     pause_button = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.CLASS_NAME, 'animationPause'))
     )
+    
+    # 滚动页面以确保按钮可见
+    driver.execute_script("arguments[0].scrollIntoView(true);", pause_button)
+    time.sleep(1)  # 给页面一些时间进行调整
+    
+    # 点击暂停按钮，显示频道图标
     pause_button.click()
     print("已点击暂停按钮，频道图标显示出来")
 
-    # 定位所有频道的li元素
+    # 等待频道图标加载出来
     channel_icons = WebDriverWait(driver, 10).until(
         EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'li.swiper-slide'))
     )
@@ -37,6 +43,10 @@ try:
     actions = ActionChains(driver)
 
     for index, icon in enumerate(channel_icons):
+        # 滚动到该图标并确保它在视图内
+        driver.execute_script("arguments[0].scrollIntoView(true);", icon)
+        time.sleep(1)  # 等待滑动完成
+
         # 模拟点击频道图标
         icon.click()
         print(f"已点击频道 {index + 1} 图标")
@@ -45,6 +55,7 @@ try:
         play_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CLASS_NAME, 'animationPlay'))
         )
+        driver.execute_script("arguments[0].scrollIntoView(true);", play_button)
         play_button.click()
         print(f"已点击频道 {index + 1} 的播放按钮")
 
