@@ -26,27 +26,29 @@ try:
         EC.presence_of_element_located((By.TAG_NAME, 'video'))
     )
 
-    # 获取当前频道名称和URL
-    for _ in range(10):  # 假设我们要抓取10个频道
+    # 获取所有频道列表
+    channel_elements = WebDriverWait(driver, 10).until(
+        EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'ul.btnBox li'))
+    )
+
+    for channel_element in channel_elements:
+        # 获取频道名称
+        channel_name = channel_element.text.strip()
+        print(f"切换到频道: {channel_name}")
+
+        # 点击该频道以切换
+        channel_element.click()
+        time.sleep(2)  # 等待视频切换
+
         # 获取当前视频的URL
         video_element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, 'videoBox'))
+            EC.presence_of_element_located((By.TAG_NAME, 'video'))
         )
         live_url = video_element.get_attribute('src')
-
-        # 获取当前频道名称
-        channel_name = driver.find_element(By.ID, 'channelName').text
 
         if live_url:
             live_sources.append({'channel': channel_name, 'url': live_url})
             print(f"找到频道 {channel_name} 的直播源: {live_url}")
-
-        # 点击下方的频道名称进行切换
-        channel_button = driver.find_element(By.XPATH, "//p[contains(@class, 'BtnInfo') and text()='点此播放']")
-        channel_button.click()
-
-        # 等待视频切换
-        time.sleep(2)  # 根据需要调整等待时间
 
 except Exception as e:
     print(f"发生错误: {e}")
@@ -57,7 +59,7 @@ finally:
 # 生成 .m3u 文件
 with open('live_streams.m3u', 'w') as f:
     f.write('#EXTM3U\n')
-    for index, source in enumerate(live_sources, start=1):
+    for source in live_sources:
         f.write(f'#EXTINF:-1, {source["channel"]}\n')
         f.write(f'{source["url"]}\n')
 
