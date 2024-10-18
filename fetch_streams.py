@@ -55,17 +55,18 @@ try:
             )
             print(f"当前频道: {channel_name_element.text}")
 
-            # 模拟左滑动操作
-            driver.execute_script("window.scrollBy(-100, 0);")  # 左滑动
+            # 调整左滑动操作
+            driver.execute_script("window.scrollBy(-150, 0);")  # 左滑动，调整滑动距离
             time.sleep(1)  # 等待滑动效果
 
             # 播放视频
             driver.execute_script("arguments[0].play();", video_element)
-            time.sleep(3)  # 等待视频加载和播放
+            time.sleep(1)  # 确保播放
 
             # 等待视频URL发生变化
             try:
-                new_url = WebDriverWait(driver, 10).until(
+                # 等待视频元素的 src 属性变化
+                WebDriverWait(driver, 10).until(
                     lambda d: d.find_element(By.TAG_NAME, 'video').get_attribute('src') != current_url
                 )
                 # 检查新URL并存储
