@@ -2,7 +2,8 @@ from seleniumwire import webdriver  # 使用Selenium Wire代替Selenium
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import traceback
+import chromedriver_autoinstaller
+chromedriver_autoinstaller.install()  # 自动安装匹配的 chromedriver
 
 
 # 设置Selenium Wire的Chrome选项
