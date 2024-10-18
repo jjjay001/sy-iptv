@@ -2,6 +2,11 @@ from seleniumwire import webdriver  # 使用Selenium Wire代替Selenium
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import traceback
+
+except Exception as e:
+    print(f"发生错误: {e}")
+    traceback.print_exc()  # 打印完整的堆栈跟踪信息
 
 # 设置Selenium Wire的Chrome选项
 options = webdriver.ChromeOptions()
