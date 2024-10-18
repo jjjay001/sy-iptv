@@ -1,16 +1,16 @@
-from selenium import webdriver
+from seleniumwire import webdriver  # 使用Selenium Wire代替Selenium
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 
-# 设置Selenium的Chrome选项
+# 设置Selenium Wire的Chrome选项
 options = webdriver.ChromeOptions()
 options.add_argument('--headless')  # 无头模式
 options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
 
-# 启动Chrome浏览器
+# 启动带有Selenium Wire的Chrome浏览器
 driver = webdriver.Chrome(options=options)
 
 # 直播源URL列表
@@ -20,11 +20,6 @@ try:
     # 打开目标网页
     url = "http://live.snrtv.com"  # 替换为实际的直播页面URL
     driver.get(url)
-
-    # 等待视频标签出现
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.TAG_NAME, 'video'))
-    )
 
     # 假设频道名称列表
     channel_names = ["陕西卫视", "新闻资讯", "都市青春", "生活频道", "影视频道", "公共频道", "乐家购物", "体育休闲", "农林卫视", "移动电视"]
@@ -39,29 +34,18 @@ try:
         # 等待视频标签更新
         time.sleep(2)  # 等待视频加载
 
-        # 尝试多次获取视频源，确保获取到正确的 m3u8 链接
-        for attempt in range(5):
-            try:
-                # 获取视频源URL
-                video_source = WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.TAG_NAME, 'video'))
-                )
-                live_url = video_source.get_attribute('src')
+        # 监听并获取 m3u8 请求
+        m3u8_url = None
+        for request in driver.requests:
+            if request.response and '.m3u8' in request.url:
+                m3u8_url = request.url
+                break
 
-                # 确保是m3u8格式
-                if live_url and live_url.endswith('.m3u8'):
-                    live_sources.append((channel, live_url))
-                    print(f"找到频道 {channel} 的直播源: {live_url}")
-                    break
-                else:
-                    print(f"第 {attempt + 1} 次尝试获取频道 {channel} 的直播源: {live_url}")
-
-            except Exception as e:
-                print(f"发生错误: {e}")
-                time.sleep(2)  # 等待视频源更新
-
-        # 如果未找到 m3u8 格式的视频源
-        if not live_url or not live_url.endswith('.m3u8'):
+        # 确保找到 m3u8 URL
+        if m3u8_url:
+            live_sources.append((channel, m3u8_url))
+            print(f"找到频道 {channel} 的直播源: {m3u8_url}")
+        else:
             print(f"未找到频道 {channel} 的 m3u8 格式直播源")
 
 except Exception as e:
@@ -78,3 +62,4 @@ with open('live_streams.m3u', 'w') as f:
         f.write(f'{source}\n')
 
 print("已生成 live_streams.m3u 文件")
+
