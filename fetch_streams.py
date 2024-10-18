@@ -105,7 +105,7 @@ finally:
 # 生成 .m3u 文件
 with open('live_streams.m3u', 'w') as f:
     f.write('#EXTM3U\n')
-    for channel_id source, in live_sources:
+    for channel_id, source in live_sources:
         channel_name = channel_ys.get(channel_id, "未知频道")  # 获取频道名称
         # 写入频道信息，-1 表示持续时间未知
         f.write(f'#EXTINF:-1, {channel_name}\n')
