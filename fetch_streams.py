@@ -47,12 +47,18 @@ try:
         # 暂停当前视频（通过执行JavaScript暂停）
         driver.execute_script("document.querySelector('video').pause();")
 
-        # 等待1秒，确保视频暂停后再滑动
-        time.sleep(1)
+        # 滑动前，确保视频元素可见
+        driver.execute_script("arguments[0].scrollIntoView();", live_source)
 
-        # 模拟向右滑动操作以切换到下一个频道
-        video_element = live_source
-        actions.click_and_hold(video_element).move_by_offset(-500, 0).release().perform()
+        # 获取元素位置并检查它是否有大小
+        location = live_source.location
+        size = live_source.size
+
+        if size['width'] > 0 and size['height'] > 0:
+            # 只有在视频元素有可见尺寸时才滑动
+            actions.click_and_hold(live_source).move_by_offset(-500, 0).release().perform()
+        else:
+            print(f"视频元素在频道 {index + 1} 不可见，跳过滑动")
 
         # 等待切换后的视频加载
         time.sleep(2)  # 可根据实际加载时间调整
