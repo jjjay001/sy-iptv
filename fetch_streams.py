@@ -17,7 +17,7 @@ driver = webdriver.Chrome(options=options)
 # 直播源URL列表
 live_sources = []
 # 频道名称映射
-channel_names = {
+channel_id = {
     1: "农林卫视",
     2: "新闻综合",
     3: "都市青春",
