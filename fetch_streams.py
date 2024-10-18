@@ -2,7 +2,6 @@ from seleniumwire import webdriver  # 使用Selenium Wire代替Selenium
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import time
 
 # 设置Selenium Wire的Chrome选项
 options = webdriver.ChromeOptions()
@@ -32,7 +31,9 @@ try:
         channel_element.click()
 
         # 等待视频标签更新
-        time.sleep(2)  # 等待视频加载
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.TAG_NAME, 'video'))  # 假设视频标签为 <video>
+        )
 
         # 监听并获取 m3u8 请求
         m3u8_url = None
@@ -62,4 +63,3 @@ with open('live_streams.m3u', 'w') as f:
         f.write(f'{source}\n')
 
 print("已生成 live_streams.m3u 文件")
-
