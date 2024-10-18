@@ -71,6 +71,9 @@ try:
         except Exception as e:
             print(f"滑动操作失败: {e}")
 
+        # 在每次滑动后，重置ActionChains以防止链条问题
+        action.reset_actions()
+
 except Exception as e:
     print(f"发生错误: {e}")
 finally:
