@@ -50,25 +50,23 @@ try:
     for hash_key in channel_hash_map.keys():
         print(f"通过 hash 切换到频道: {hash_key}")
         driver.execute_script(f"window.location.hash = '{hash_key}';")
-        time.sleep(2)  # 等待页面根据 hash 更新
+        
+        # 触发可能的事件（例如更新） - 根据您的网页需要调整
+        driver.execute_script("window.dispatchEvent(new Event('hashchange'));")
+        
+        time.sleep(3)  # 等待页面根据 hash 更新
 
-        # 尝试获取当前直播源，最多重试3次
-        for attempt in range(3):
-            try:
-                video_element = WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.ID, 'videoBox'))
-                )
-                current_live_url = video_element.get_attribute('src')
+        # 获取当前直播源
+        video_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, 'videoBox'))
+        )
+        current_live_url = video_element.get_attribute('src')
 
-                if current_live_url != default_live_url:
-                    live_sources.append(current_live_url)
-                    print(f"当前直播源: {current_live_url}")
-                else:
-                    print(f"未检测到新直播源，当前仍为默认频道")
-                break  # 成功获取后跳出重试循环
-            except Exception as e:
-                print(f"尝试获取当前直播源失败: {e}")
-                time.sleep(1)  # 等待一秒后重试
+        if current_live_url != default_live_url:
+            live_sources.append(current_live_url)
+            print(f"当前直播源: {current_live_url}")
+        else:
+            print(f"未检测到新直播源，当前仍为默认频道")
 
 except Exception as e:
     print(f"发生错误: {e}")
