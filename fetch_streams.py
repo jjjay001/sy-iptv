@@ -105,7 +105,7 @@ finally:
 # 生成 .m3u 文件
 with open('live_streams.m3u', 'w') as f:
     f.write('#EXTM3U\n')
-    for index, (source,name) in enumerate(live_sources, start=1):
+    for index, (name,source) in enumerate(start=1,live_sources):
         f.write(f'#EXTINF:-1, {name}\n')
         f.write(f'{source}\n')
 
