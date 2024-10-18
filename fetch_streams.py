@@ -18,7 +18,7 @@ live_sources = []
 
 try:
     # 打开目标网页
-    url = "http://live.snrtv.com"  # 目标直播页面URL
+    url = "http://live.snrtv.com"  # 替换为实际的直播页面URL
     driver.get(url)
 
     # 等待视频标签出现
@@ -26,29 +26,31 @@ try:
         EC.presence_of_element_located((By.TAG_NAME, 'video'))
     )
 
-    # 获取所有频道列表
-    channel_elements = WebDriverWait(driver, 10).until(
-        EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'ul.btnBox li'))
-    )
+    # 假设频道名称列表
+    channel_names = ["陕西卫视", "新闻资讯", "都市青春", "生活频道", "影视频道", "公共频道", "乐家购物", "体育休闲", "农林卫视", "移动电视"]
 
-    for channel_element in channel_elements:
-        # 获取频道名称
-        channel_name = channel_element.text.strip()
-        print(f"切换到频道: {channel_name}")
-
-        # 点击该频道以切换
+    for channel in channel_names:
+        # 切换到对应频道
+        channel_element = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, f"//div[text()='{channel}']"))
+        )
         channel_element.click()
-        time.sleep(2)  # 等待视频切换
 
-        # 获取当前视频的URL
-        video_element = WebDriverWait(driver, 10).until(
+        # 等待视频标签更新
+        time.sleep(2)  # 等待视频加载
+        
+        # 获取视频源URL
+        video_source = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.TAG_NAME, 'video'))
         )
-        live_url = video_element.get_attribute('src')
+        live_url = video_source.get_attribute('src')
 
-        if live_url:
-            live_sources.append({'channel': channel_name, 'url': live_url})
-            print(f"找到频道 {channel_name} 的直播源: {live_url}")
+        # 确保是m3u8格式
+        if live_url and live_url.endswith('.m3u8'):
+            live_sources.append((channel, live_url))
+            print(f"找到频道 {channel} 的直播源: {live_url}")
+        else:
+            print(f"频道 {channel} 的直播源不是 m3u8 格式: {live_url}")
 
 except Exception as e:
     print(f"发生错误: {e}")
@@ -59,8 +61,8 @@ finally:
 # 生成 .m3u 文件
 with open('live_streams.m3u', 'w') as f:
     f.write('#EXTM3U\n')
-    for source in live_sources:
-        f.write(f'#EXTINF:-1, {source["channel"]}\n')
-        f.write(f'{source["url"]}\n')
+    for channel, source in live_sources:
+        f.write(f'#EXTINF:-1, {channel}\n')
+        f.write(f'{source}\n')
 
 print("已生成 live_streams.m3u 文件")
