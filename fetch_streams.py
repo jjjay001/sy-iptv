@@ -49,9 +49,14 @@ try:
             driver.execute_script("arguments[0].scrollIntoView();", video_element)
             time.sleep(1)  # 等待滚动完成
 
-            # 模拟滑动左侧频道列表（假设频道列表的元素是可以水平滚动的）
-            channel_list = driver.find_element(By.h3_NAME, 'channelName')  # 替换为频道列表的实际类名
-            driver.execute_script("arguments[0].scrollLeft -= 100;", channel_list)  # 左滑动
+            # 查找频道名称
+            channel_name_element = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, 'channelName'))
+            )
+            print(f"当前频道: {channel_name_element.text}")
+
+            # 模拟左滑动操作
+            driver.execute_script("window.scrollBy(-100, 0);")  # 左滑动
             time.sleep(1)  # 等待滑动效果
 
             # 播放视频
