@@ -56,7 +56,7 @@ try:
             print(f"当前频道: {channel_name_element.text}")
 
             # 调整左滑动操作
-            driver.execute_script("window.scrollBy(-150, 0);")  # 左滑动，调整滑动距离
+            driver.execute_script("window.scrollBy(-300, 0);")  # 左滑动，调整滑动距离
             time.sleep(1)  # 等待滑动效果
 
             # 播放视频
