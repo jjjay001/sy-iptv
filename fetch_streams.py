@@ -1,67 +1,77 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 
-# 设置 Chrome 选项
+# 设置Selenium的Chrome选项
 options = webdriver.ChromeOptions()
-options.add_argument('--headless')
+options.add_argument('--headless')  # 无头模式
 options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
 
-# 启动 Chrome 浏览器
+# 启动Chrome浏览器
 driver = webdriver.Chrome(options=options)
 
-# 直播源 URL 列表
+# 直播源URL列表
 live_sources = []
 
 try:
     # 打开目标网页
-    driver.get("http://m.snrtv.com/snrtv_tv/index.html")
+    url = "http://m.snrtv.com/snrtv_tv/index.html"  # 替换为实际的直播页面URL
+    driver.get(url)
 
-    # 等待 Hls.js 加载
+    # 等待页面完全加载
     WebDriverWait(driver, 10).until(
-        lambda d: d.execute_script("return typeof Hls !== 'undefined';")  # 确保 Hls 可用
+        EC.presence_of_element_located((By.ID, 'videoBox'))  # 确保视频盒子加载完毕
     )
-    
+
     # 获取默认直播源
-    video_element = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, 'videoBox'))
-    )
+    video_element = driver.find_element(By.ID, 'videoBox')
     default_live_url = video_element.get_attribute('src')
     live_sources.append(default_live_url)
     print(f"找到默认直播源: {default_live_url}")
 
-    # 切换频道的示例列表
-    channels = [
-        "http://stream.snrtv.com/sxbc-star-dnyXZ6.m3u8",  # 频道示例
-        # 添加其他频道的 URL
-    ]
+    # 频道哈希映射
+    channel_hash_map = {
+        'star': 'star',
+        'nl': 'nl',
+        '1': '1',
+        '2': '2',
+        '3': '3',
+        '4': '4',
+        '5': '5',
+        '6': '6',
+        '7': '7',
+        '8': '8'
+    }
 
-    for channel_url in channels:
-        print(f"通过 Hls.js 切换到频道: {channel_url}")
-        driver.execute_script(f"""
-            var video = document.getElementById('videoBox');
-            if (Hls) {{
-                var hls = new Hls();
-                hls.loadSource('{channel_url}');
-                hls.attachMedia(video);
-                video.play();
-            }}
-        """)
-        time.sleep(5)  # 等待播放一段时间
+    # 通过 hash 切换频道
+    for hash_key in channel_hash_map.keys():
+        print(f"通过 hash 切换到频道: {hash_key}")
+        driver.execute_script(f"window.location.hash = '{hash_key}';")
+        
+        # 触发可能的事件（例如更新） - 根据您的网页需要调整
+        driver.execute_script("window.dispatchEvent(new Event('hashchange'));")
+        
+        time.sleep(3)  # 等待页面根据 hash 更新
 
         # 获取当前直播源
+        video_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, 'videoBox'))
+        )
         current_live_url = video_element.get_attribute('src')
+
         if current_live_url != default_live_url:
             live_sources.append(current_live_url)
             print(f"当前直播源: {current_live_url}")
         else:
-            print(f"未检测到新直播源，跳过频道 {channel_url}")
+            print(f"未检测到新直播源，当前仍为默认频道")
 
 except Exception as e:
     print(f"发生错误: {e}")
 finally:
+    # 关闭浏览器
     driver.quit()
 
 # 生成 .m3u 文件
