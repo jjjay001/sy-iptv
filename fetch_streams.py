@@ -21,27 +21,17 @@ try:
     url = "http://m.snrtv.com/snrtv_tv/index.html"  # 替换为实际的直播页面URL
     driver.get(url)
 
-    # 等待页面完全加载并确保 Swiper 实例存在
+    # 等待页面完全加载
     WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, 'programSwiper'))  # 确保页面加载完毕
+        EC.presence_of_element_located((By.ID, 'videoBox'))  # 确保页面加载完毕
     )
 
     # 确保 Swiper 初始化完毕
-    swiper_initialized = False
-    for _ in range(10):  # 尝试10次，每次等待1秒
-        swiper_initialized = driver.execute_script("""
-            if (typeof swiper !== 'undefined' && swiper.initialized) {
-                return true;
-            } else {
-                return false;
-            }
-        """)
-        if swiper_initialized:
-            print("Swiper 已初始化")
-            break
-        time.sleep(1)  # 等待1秒
+    swiper_initialized = driver.execute_script("""
+        return (typeof swiper !== 'undefined' && swiper.initialized);
+    """)
     if not swiper_initialized:
-        raise Exception("Swiper 未能初始化")
+        print("Swiper 未能初始化")
 
     # 获取默认直播源
     video_element = WebDriverWait(driver, 10).until(
@@ -53,26 +43,26 @@ try:
 
     # 通过 hash 切换频道
     channel_hash_map = {
-        'star': 1,
-        'nl': 2,
-        '1': 3,
-        '2': 4,
-        '3': 5,
-        '4': 6,
-        '5': 7,
-        '6': 8,
-        '7': 9,
-        '8': 10
+        'star': 'star',
+        'nl': 'nl',
+        '1': '1',
+        '2': '2',
+        '3': '3',
+        '4': '4',
+        '5': '5',
+        '6': '6',
+        '7': '7',
+        '8': '8'
     }
 
     # 假设当前的 hash 是 'star'
     cur_hash = 'star'  # 可以根据实际情况进行修改
     if cur_hash in channel_hash_map:
-        target_index = channel_hash_map[cur_hash]
         print(f"通过 hash 切换到频道: {cur_hash}")
-        driver.execute_script(f"swiper.slideTo({target_index}, 1000, false);")
-        time.sleep(1)  # 等待滑动动画结束
-        
+        # 更新 URL 的 hash 值
+        driver.execute_script(f"window.location.hash = '{cur_hash}';")
+        time.sleep(2)  # 等待页面根据 hash 更新
+
         # 获取当前直播源
         video_element = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, 'videoBox'))
@@ -86,10 +76,10 @@ try:
             print(f"未检测到新直播源，当前仍为默认频道")
 
     # 循环抓取其他频道（可选）
-    for i in range(2, 11):  # 假设频道从2到10
-        driver.execute_script(f"swiper.slideTo({i}, 1000, false);")
-        time.sleep(1)  # 等待滑动动画结束
-        
+    for hash_key in channel_hash_map.keys():
+        driver.execute_script(f"window.location.hash = '{hash_key}';")
+        time.sleep(2)  # 等待页面根据 hash 更新
+
         # 获取当前直播源
         video_element = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, 'videoBox'))
@@ -100,7 +90,7 @@ try:
             live_sources.append(current_live_url)
             print(f"当前直播源: {current_live_url}")
         else:
-            print(f"未检测到新直播源，跳过第 {i} 频道")
+            print(f"未检测到新直播源，跳过频道 {hash_key}")
 
 except Exception as e:
     print(f"发生错误: {e}")
