@@ -23,7 +23,7 @@ try:
     driver.get(url)
 
     # 等待页面完全加载
-    WebDriverWait(driver, 10).until(
+    WebDriverWait(driver, 3).until(
         EC.presence_of_element_located((By.ID, 'videoBox'))  # 确保视频盒子加载完毕
     )
 
@@ -51,7 +51,6 @@ try:
         if i == 9:  # 跳过频道9
             print("跳过频道 9（购物台）")
             continue
-        
         print(f"滑动到频道 {i}")
         try:
             # 执行滑动操作
@@ -68,11 +67,15 @@ try:
             if current_live_url != default_live_url:
                 live_sources.append(current_live_url)
                 print(f"当前直播源: {current_live_url}")
+                default_live_url = current_live_url  # 更新默认直播源为当前直播源
             else:
                 print(f"未检测到新直播源，当前仍为默认频道")
 
         except Exception as e:
-            print(f"滑动频道 {i} 时发生错误: {e}")
+            print(f"滑动操作失败: {e}")
+
+        # 在每次滑动后，重置ActionChains以防止链条问题
+        action.reset_actions()
 
 except Exception as e:
     print(f"发生错误: {e}")
