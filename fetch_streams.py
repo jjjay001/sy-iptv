@@ -32,23 +32,51 @@ try:
     live_sources.append(default_live_url)
     print(f"找到默认直播源: {default_live_url}")
 
-    # 通过 swiper 左滑切换频道
+    # 通过 JavaScript 动态获取滑动区域的位置和宽度
+    swiper_position = driver.execute_script("""
+        const el = document.querySelector('.swiper-container');  // 替换为实际的滑动容器
+        const rect = el.getBoundingClientRect();
+        return { left: rect.left, right: rect.right, width: rect.width, top: rect.top, bottom: rect.bottom };
+    """)
+
+    start_x = swiper_position['right'] - 10  # 滑动的起点，接近容器右边
+    end_x = swiper_position['left'] + 10  # 滑动的终点，接近容器左边
+    start_y = (swiper_position['top'] + swiper_position['bottom']) / 2  # 垂直居中
+
+    # 通过模拟触摸事件滑动切换频道
     for i in range(1, 10):  # 假设有10个频道
         print(f"滑动到频道 {i}")
-        driver.execute_script(f"swiper.slideTo({i}, 1000, false);")  # 模拟滑动到下一个频道
-        time.sleep(3)  # 等待滑动动画和视频切换
-        
-        # 获取当前直播源
-        video_element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, 'videoBox'))
-        )
-        current_live_url = video_element.get_attribute('src')
+        try:
+            driver.execute_script(f"""
+                const el = document.querySelector('.swiper-container');  // 滑动的实际容器
+                const touchStartEvent = new TouchEvent('touchstart', {{
+                    touches: [{{ clientX: {start_x}, clientY: {start_y} }}]
+                }});
+                const touchMoveEvent = new TouchEvent('touchmove', {{
+                    touches: [{{ clientX: {end_x}, clientY: {start_y} }}]
+                }});
+                const touchEndEvent = new TouchEvent('touchend');
+                
+                el.dispatchEvent(touchStartEvent);
+                el.dispatchEvent(touchMoveEvent);
+                el.dispatchEvent(touchEndEvent);
+            """)
+            time.sleep(3)  # 等待滑动动画和视频切换
 
-        if current_live_url != default_live_url:
-            live_sources.append(current_live_url)
-            print(f"当前直播源: {current_live_url}")
-        else:
-            print(f"未检测到新直播源，当前仍为默认频道")
+            # 获取当前直播源
+            video_element = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, 'videoBox'))
+            )
+            current_live_url = video_element.get_attribute('src')
+
+            if current_live_url != default_live_url:
+                live_sources.append(current_live_url)
+                print(f"当前直播源: {current_live_url}")
+            else:
+                print(f"未检测到新直播源，当前仍为默认频道")
+
+        except Exception as e:
+            print(f"滑动操作失败: {e}")
 
 except Exception as e:
     print(f"发生错误: {e}")
