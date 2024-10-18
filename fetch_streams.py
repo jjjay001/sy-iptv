@@ -16,18 +16,6 @@ driver = webdriver.Chrome(options=options)
 # 直播源URL列表
 live_sources = []
 
-def get_live_url():
-    """获取当前视频的直播源 URL."""
-    try:
-        video_source = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.TAG_NAME, 'video'))
-        )
-        live_url = video_source.get_attribute('src')
-        return live_url
-    except Exception as e:
-        print(f"获取直播源时发生错误: {e}")
-        return None
-
 try:
     # 打开目标网页
     url = "http://live.snrtv.com"  # 替换为实际的直播页面URL
@@ -51,22 +39,30 @@ try:
         # 等待视频标签更新
         time.sleep(2)  # 等待视频加载
 
-        # 获取直播源URL，最多重试3次
-        retries = 3
-        live_url = None
-        while retries > 0:
-            live_url = get_live_url()
-            if live_url and live_url.endswith('.m3u8'):
-                live_sources.append((channel, live_url))
-                print(f"找到频道 {channel} 的直播源: {live_url}")
-                break
-            else:
-                print(f"频道 {channel} 的直播源不是 m3u8 格式，正在重试...")
-                time.sleep(1)  # 等待一段时间后重试
-                retries -= 1
+        # 尝试多次获取视频源，确保获取到正确的 m3u8 链接
+        for attempt in range(5):
+            try:
+                # 获取视频源URL
+                video_source = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.TAG_NAME, 'video'))
+                )
+                live_url = video_source.get_attribute('src')
 
-        if retries == 0 and (not live_url or not live_url.endswith('.m3u8')):
-            print(f"频道 {channel} 的直播源未找到或不是 m3u8 格式")
+                # 确保是m3u8格式
+                if live_url and live_url.endswith('.m3u8'):
+                    live_sources.append((channel, live_url))
+                    print(f"找到频道 {channel} 的直播源: {live_url}")
+                    break
+                else:
+                    print(f"第 {attempt + 1} 次尝试获取频道 {channel} 的直播源: {live_url}")
+
+            except Exception as e:
+                print(f"发生错误: {e}")
+                time.sleep(2)  # 等待视频源更新
+
+        # 如果未找到 m3u8 格式的视频源
+        if not live_url or not live_url.endswith('.m3u8'):
+            print(f"未找到频道 {channel} 的 m3u8 格式直播源")
 
 except Exception as e:
     print(f"发生错误: {e}")
