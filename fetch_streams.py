@@ -38,10 +38,9 @@ try:
     screen_width = window_size['width']
     screen_height = window_size['height']
 
-    # 设置滑动的起点和终点位置
-    start_x = screen_width / 2 + 150  # 从屏幕中心偏右150
-    end_x = screen_width / 2 - 150  # 向左滑动至中心偏左150
-    y_position = screen_height / 3  # 屏幕上三分之一的高度
+    # 每次滑动的起点和终点位置
+    start_x = screen_width / 2  # 从屏幕中间开始
+    y_position = screen_height / 3  # 纵向位置位于屏幕上三分之一
 
     # 通过鼠标拖动事件滑动切换频道
     action = ActionChains(driver)
@@ -49,7 +48,9 @@ try:
     for i in range(1, 10):  # 假设有10个频道
         print(f"滑动到频道 {i}")
         try:
-            action.move_by_offset(start_x, y_position).click_and_hold().move_by_offset(end_x - start_x, 0).release().perform()
+            # 执行滑动操作
+            action.move_by_offset(start_x + 50, y_position).click_and_hold()  # 向右偏移50
+            action.move_by_offset(-100, 0).release().perform()  # 向左滑动100（回到屏幕中间-50）
             
             time.sleep(3)  # 等待滑动动画和视频切换
 
@@ -65,6 +66,9 @@ try:
             else:
                 print(f"未检测到新直播源，当前仍为默认频道")
 
+            # 更新默认直播源为当前直播源
+            default_live_url = current_live_url
+            
         except Exception as e:
             print(f"滑动操作失败: {e}")
 
