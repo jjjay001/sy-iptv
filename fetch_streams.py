@@ -50,7 +50,7 @@ try:
             time.sleep(1)  # 等待滚动完成
 
             # 模拟滑动左侧频道列表（假设频道列表的元素是可以水平滚动的）
-            channel_list = driver.find_element(By.CLASS_NAME, 'channelName')  # 替换为频道列表的实际类名
+            channel_list = driver.find_element(By.h3_NAME, 'channelName')  # 替换为频道列表的实际类名
             driver.execute_script("arguments[0].scrollLeft -= 100;", channel_list)  # 左滑动
             time.sleep(1)  # 等待滑动效果
 
