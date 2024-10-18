@@ -48,7 +48,7 @@ try:
     action = ActionChains(driver)
 
     channel_count = 9  # 假设有10个频道
-        
+    for i in range(1, channel_count + 1):   
         # 根据频道编号决定滑动距离
         if i == 5 or i == 8:
             move = double_move_distance  # 第五次和第八次滑动距离为其他滑动的两倍
