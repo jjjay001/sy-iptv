@@ -18,44 +18,35 @@ live_sources = []
 
 try:
     # 打开目标网页
-    url = "http://m.snrtv.com/snrtv_tv/index.html"  # 替换为实际的直播页面URL
+    url = "http://live.snrtv.com"  # 目标直播页面URL
     driver.get(url)
 
-    # 等待频道列表加载完成
-    print("等待频道列表加载...")
+    # 等待视频标签出现
     WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CLASS_NAME, 'swiper-slide'))
+        EC.presence_of_element_located((By.TAG_NAME, 'video'))
     )
-    print("频道列表已加载.")
 
-    # 获取所有频道的 li 元素
-    channel_elements = driver.find_elements(By.XPATH, "//li[contains(@class, 'swiper-slide')]")
-
-    for index, channel in enumerate(channel_elements):
-        # 模拟点击每个频道以获取直播源
-        print(f"切换到频道 {index + 1}...")
-        channel.click()
-
-        # 等待视频标签加载完成
-        WebDriverWait(driver, 10).until(
+    # 获取当前频道名称和URL
+    for _ in range(10):  # 假设我们要抓取10个频道
+        # 获取当前视频的URL
+        video_element = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, 'videoBox'))
         )
+        live_url = video_element.get_attribute('src')
 
-        # 获取直播源的 URL
-        live_source = driver.find_element(By.ID, 'videoBox')
-        live_url = live_source.get_attribute('src')
-
-        # 获取频道名称
+        # 获取当前频道名称
         channel_name = driver.find_element(By.ID, 'channelName').text
 
         if live_url:
-            live_sources.append((channel_name, live_url))
+            live_sources.append({'channel': channel_name, 'url': live_url})
             print(f"找到频道 {channel_name} 的直播源: {live_url}")
-        else:
-            print(f"频道 {channel_name} 的直播源 URL 为 None")
 
-        # 等待一段时间以确保可以加载下一个频道
-        time.sleep(1)
+        # 点击下方的频道名称进行切换
+        channel_button = driver.find_element(By.XPATH, "//p[contains(@class, 'BtnInfo') and text()='点此播放']")
+        channel_button.click()
+
+        # 等待视频切换
+        time.sleep(2)  # 根据需要调整等待时间
 
 except Exception as e:
     print(f"发生错误: {e}")
@@ -66,8 +57,8 @@ finally:
 # 生成 .m3u 文件
 with open('live_streams.m3u', 'w') as f:
     f.write('#EXTM3U\n')
-    for channel_name, source in live_sources:
-        f.write(f'#EXTINF:-1, {channel_name}\n')
-        f.write(f'{source}\n')
+    for index, source in enumerate(live_sources, start=1):
+        f.write(f'#EXTINF:-1, {source["channel"]}\n')
+        f.write(f'{source["url"]}\n')
 
 print("已生成 live_streams.m3u 文件")
