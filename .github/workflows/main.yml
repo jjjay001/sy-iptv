@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
       
         run:  
-             pip install selenium requests futures eventlet beautifulsoup4 
+             pip install selenium requests futures eventlet beautifulsoup4 selenium-wire
 
       - name: Run fetch_stream
         run: python ${{ github.workspace }}/fetch_streams.py
