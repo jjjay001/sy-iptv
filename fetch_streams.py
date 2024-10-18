@@ -1,22 +1,69 @@
-import requests
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
 
-# XHR 请求的 URL，这里需要根据实际情况修改
-url = "live.snrtv.com"  # 假设的 API 端点
+# 设置Selenium的Chrome选项
+options = webdriver.ChromeOptions()
+options.add_argument('--headless')  # 无头模式
+options.add_argument('--no-sandbox')
+options.add_argument('--disable-dev-shm-usage')
+options.add_argument('--user-agent=Mozilla/5.0')
 
-# 发送请求
+# 启动Chrome浏览器
+driver = webdriver.Chrome(options=options)
+
+# 直播源URL列表
+live_sources = []
+
 try:
-    response = requests.get(url)
-    response.raise_for_status()  # 检查请求是否成功
+    # 打开目标网页
+    url = "http://live.snrtv.com"  # 替换为实际的直播页面URL
+    driver.get(url)
 
-    # 解析 JSON 数据
-    data = response.json()
+    # 等待视频标签出现，确保页面加载完成
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.TAG_NAME, 'video'))
+    )
 
-    # 提取直播源
-    streams = data.get('streams', [])
-    for stream in streams:
-        print(f"直播源: {stream['url']}")  # 假设每个流都有一个 'url' 字段
+    # 获取频道名称列表
+    channel_names = WebDriverWait(driver, 10).until(
+        EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'selector-for-channel-names'))  # 替换为实际的选择器
+    )
 
-except requests.exceptions.RequestException as e:
-    print(f"请求失败: {e}")
-except ValueError as e:
-    print(f"解析失败: {e}")
+    for index, channel in enumerate(channel_names):
+        try:
+            # 点击频道名称切换频道
+            channel.click()
+
+            # 等待新频道的视频加载
+            time.sleep(2)  # 可根据实际加载时间调整
+
+            # 获取当前直播源
+            live_source = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.TAG_NAME, 'video'))
+            )
+
+            # 获取直播源的URL
+            live_url = live_source.get_attribute('src')
+            live_sources.append(live_url)
+            print(f"找到频道 {index + 1} 的直播源: {live_url}")
+
+        except Exception as e:
+            print(f"获取频道 {index + 1} 时发生错误: {e}")
+
+except Exception as e:
+    print(f"发生错误: {e}")
+finally:
+    # 关闭浏览器
+    driver.quit()
+
+# 生成 .m3u 文件
+with open('live_streams.m3u', 'w') as f:
+    f.write('#EXTM3U\n')
+    for index, source in enumerate(live_sources, start=1):
+        f.write(f'#EXTINF:-1, Channel {index}\n')
+        f.write(f'{source}\n')
+
+print("已生成 live_streams.m3u 文件")
