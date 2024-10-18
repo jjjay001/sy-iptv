@@ -2,7 +2,7 @@ name: update-lives-list
 
 on:
   schedule:
-    - cron: '15 3 * * *'
+    - cron: '0 22 * * *'
   push:
     branches:
       - main
