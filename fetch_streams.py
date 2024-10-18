@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -33,34 +34,22 @@ try:
     print(f"找到默认直播源: {default_live_url}")
 
     # 通过 JavaScript 动态获取滑动区域的位置和宽度
-    swiper_position = driver.execute_script("""
-        const el = document.querySelector('.swiper-container');  // 替换为实际的滑动容器
-        const rect = el.getBoundingClientRect();
-        return { left: rect.left, right: rect.right, width: rect.width, top: rect.top, bottom: rect.bottom };
-    """)
+    swiper_element = driver.find_element(By.CLASS_NAME, 'swiper-container')  # 替换为实际的滑动容器
+    swiper_position = swiper_element.location
+    swiper_size = swiper_element.size
 
-    start_x = swiper_position['right'] - 10  # 滑动的起点，接近容器右边
-    end_x = swiper_position['left'] + 10  # 滑动的终点，接近容器左边
-    start_y = (swiper_position['top'] + swiper_position['bottom']) / 2  # 垂直居中
+    start_x = swiper_position['x'] + swiper_size['width'] - 10  # 滑动的起点，接近容器右边
+    end_x = swiper_position['x'] + 10  # 滑动的终点，接近容器左边
+    start_y = swiper_position['y'] + swiper_size['height'] / 2  # 垂直居中
 
-    # 通过模拟触摸事件滑动切换频道
+    # 通过鼠标拖动事件滑动切换频道
+    action = ActionChains(driver)
+
     for i in range(1, 10):  # 假设有10个频道
         print(f"滑动到频道 {i}")
         try:
-            driver.execute_script(f"""
-                const el = document.querySelector('.swiper-container');  // 滑动的实际容器
-                const touchStartEvent = new TouchEvent('touchstart', {{
-                    touches: [{{ clientX: {start_x}, clientY: {start_y} }}]
-                }});
-                const touchMoveEvent = new TouchEvent('touchmove', {{
-                    touches: [{{ clientX: {end_x}, clientY: {start_y} }}]
-                }});
-                const touchEndEvent = new TouchEvent('touchend');
-                
-                el.dispatchEvent(touchStartEvent);
-                el.dispatchEvent(touchMoveEvent);
-                el.dispatchEvent(touchEndEvent);
-            """)
+            action.move_to_element_with_offset(swiper_element, start_x, start_y).click_and_hold().move_by_offset(end_x - start_x, 0).release().perform()
+            
             time.sleep(3)  # 等待滑动动画和视频切换
 
             # 获取当前直播源
