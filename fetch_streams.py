@@ -107,7 +107,7 @@ finally:
 with open('live_streams.m3u', 'w') as f:
     f.write('#EXTM3U\n')
     for channel_id, source in live_sources:
-        f.write(f'#EXTINF:-1, {{name}\n')
+        f.write(f'#EXTINF:-1, {name}\n')
         f.write(f'{source}\n')
 
 print("已生成 live_streams.m3u 文件")
