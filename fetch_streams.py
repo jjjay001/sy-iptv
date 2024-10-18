@@ -2,7 +2,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
 import time
 
 # 设置Selenium的Chrome选项
@@ -22,52 +21,41 @@ try:
     url = "http://m.snrtv.com/snrtv_tv/index.html"  # 替换为实际的直播页面URL
     driver.get(url)
 
-    # 初始化ActionChains用于执行滑动操作
-    actions = ActionChains(driver)
-
-    # 等待视频标签出现，确保页面加载完成
+    # 等待频道列表加载完成
+    print("等待频道列表加载...")
     WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.TAG_NAME, 'video'))
+        EC.presence_of_element_located((By.CLASS_NAME, 'swiper-slide'))
     )
+    print("频道列表已加载.")
 
-    # 假设我们需要抓取的频道数量
-    num_channels = 10  # 假设有10个频道
+    # 获取所有频道的 li 元素
+    channel_elements = driver.find_elements(By.XPATH, "//li[contains(@class, 'swiper-slide')]")
 
-    for index in range(num_channels):
-        try:
-            # 获取当前直播源
-            live_source = WebDriverWait(driver, 10).until(
-                EC.visibility_of_element_located((By.TAG_NAME, 'video'))
-            )
+    for index, channel in enumerate(channel_elements):
+        # 模拟点击每个频道以获取直播源
+        print(f"切换到频道 {index + 1}...")
+        channel.click()
 
-            # 获取直播源的URL
-            live_url = live_source.get_attribute('src')
-            if live_url:
-                live_sources.append(live_url)
-                print(f"找到频道 {index + 1} 的直播源: {live_url}")
-            else:
-                print(f"频道 {index + 1} 的直播源 URL 为 None")
+        # 等待视频标签加载完成
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, 'videoBox'))
+        )
 
-            # 等待一段时间，确保视频缓冲完成
-            time.sleep(3)  # 根据需要调整等待时间
+        # 获取直播源的 URL
+        live_source = driver.find_element(By.ID, 'videoBox')
+        live_url = live_source.get_attribute('src')
 
-            # 暂停当前视频（通过执行JavaScript暂停）
-            driver.execute_script("arguments[0].pause();", live_source)
+        # 获取频道名称
+        channel_name = driver.find_element(By.ID, 'channelName').text
 
-            # 等待1秒，确保视频暂停后再进行切换
-            time.sleep(1)
+        if live_url:
+            live_sources.append((channel_name, live_url))
+            print(f"找到频道 {channel_name} 的直播源: {live_url}")
+        else:
+            print(f"频道 {channel_name} 的直播源 URL 为 None")
 
-            # 点击点此暂停/换台的按钮
-            switch_button = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, 'p.BtnInfo'))
-            )
-            switch_button.click()  # 执行切换频道的操作
-
-            # 等待切换后的视频加载
-            time.sleep(3)  # 根据实际加载时间调整
-
-        except Exception as e:
-            print(f"获取频道 {index + 1} 时发生错误: {e}")
+        # 等待一段时间以确保可以加载下一个频道
+        time.sleep(1)
 
 except Exception as e:
     print(f"发生错误: {e}")
@@ -78,8 +66,8 @@ finally:
 # 生成 .m3u 文件
 with open('live_streams.m3u', 'w') as f:
     f.write('#EXTM3U\n')
-    for index, source in enumerate(live_sources, start=1):
-        f.write(f'#EXTINF:-1, Channel {index}\n')
+    for channel_name, source in live_sources:
+        f.write(f'#EXTINF:-1, {channel_name}\n')
         f.write(f'{source}\n')
 
 print("已生成 live_streams.m3u 文件")
