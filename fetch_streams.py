@@ -43,29 +43,35 @@ try:
 
             # 保存当前的直播源URL
             current_url = video_element.get_attribute('src')
+            print(f"当前直播源: {current_url}")
 
             # 滚动页面，确保视频元素可见
             driver.execute_script("arguments[0].scrollIntoView();", video_element)
             time.sleep(1)  # 等待滚动完成
 
-            # 使用JavaScript执行左滑操作 (模拟滑动到下一个频道)
-            driver.execute_script("window.scrollBy(-100, 0);")
+            # 模拟滑动左侧频道列表（假设频道列表的元素是可以水平滚动的）
+            channel_list = driver.find_element(By.CLASS_NAME, 'your_channel_list_class')  # 替换为频道列表的实际类名
+            driver.execute_script("arguments[0].scrollLeft -= 100;", channel_list)  # 左滑动
             time.sleep(1)  # 等待滑动效果
 
             # 播放视频
             driver.execute_script("arguments[0].play();", video_element)
-            time.sleep(2)  # 等待视频加载和播放
+            time.sleep(3)  # 等待视频加载和播放
 
             # 等待视频URL发生变化
-            new_url = WebDriverWait(driver, 10).until(
-                lambda d: d.find_element(By.TAG_NAME, 'video').get_attribute('src') != current_url
-            )
-
-            # 检查新URL并存储
-            live_url = video_element.get_attribute('src')
-            if live_url and live_url.endswith('.m3u8'):
-                live_sources.append(live_url)
-                print(f"找到新的直播源: {live_url}")
+            try:
+                new_url = WebDriverWait(driver, 10).until(
+                    lambda d: d.find_element(By.TAG_NAME, 'video').get_attribute('src') != current_url
+                )
+                # 检查新URL并存储
+                live_url = video_element.get_attribute('src')
+                if live_url and live_url.endswith('.m3u8'):
+                    live_sources.append(live_url)
+                    print(f"找到新的直播源: {live_url}")
+            except Exception as url_change_e:
+                print(f"未能检测到频道变化: {url_change_e}")
+                print(traceback.format_exc())
+                break  # 如果未能检测到变化，则退出循环
 
         except Exception as inner_e:
             print(f"处理频道时发生错误: {inner_e}")
