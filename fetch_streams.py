@@ -51,9 +51,42 @@ try:
     live_sources.append(default_live_url)
     print(f"找到默认直播源: {default_live_url}")
 
-    # 循环抓取其他频道
-    for i in range(2, 11):  # 假设频道从2到10，你可以根据实际情况调整范围
-        # 调用滑动的 JavaScript，使用 swiper.slideTo() 方法
+    # 通过 hash 切换频道
+    channel_hash_map = {
+        'star': 1,
+        'nl': 2,
+        '1': 3,
+        '2': 4,
+        '3': 5,
+        '4': 6,
+        '5': 7,
+        '6': 8,
+        '7': 9,
+        '8': 10
+    }
+
+    # 假设当前的 hash 是 'star'
+    cur_hash = 'star'  # 可以根据实际情况进行修改
+    if cur_hash in channel_hash_map:
+        target_index = channel_hash_map[cur_hash]
+        print(f"通过 hash 切换到频道: {cur_hash}")
+        driver.execute_script(f"swiper.slideTo({target_index}, 1000, false);")
+        time.sleep(1)  # 等待滑动动画结束
+        
+        # 获取当前直播源
+        video_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, 'videoBox'))
+        )
+        current_live_url = video_element.get_attribute('src')
+
+        if current_live_url != default_live_url:
+            live_sources.append(current_live_url)
+            print(f"当前直播源: {current_live_url}")
+        else:
+            print(f"未检测到新直播源，当前仍为默认频道")
+
+    # 循环抓取其他频道（可选）
+    for i in range(2, 11):  # 假设频道从2到10
         driver.execute_script(f"swiper.slideTo({i}, 1000, false);")
         time.sleep(1)  # 等待滑动动画结束
         
