@@ -16,7 +16,17 @@ driver = webdriver.Chrome(options=options)
 
 # 直播源URL列表
 live_sources = []
-
+# 频道名称映射
+channel_names = {
+    1: "陕西卫视",
+    2: "农林卫视",
+    3: "新闻综合",
+    4: "都市青春",
+    5: "陕西生活",
+    6: "陕西公共",
+    7: "陕西体育",
+    8: "陕西移动",
+    
 try:
     # 打开目标网页
     url = "http://m.snrtv.com/snrtv_tv/index.html"  # 替换为实际的直播页面URL
@@ -96,7 +106,7 @@ finally:
 with open('live_streams.m3u', 'w') as f:
     f.write('#EXTM3U\n')
     for channel_id, source in live_sources:
-        f.write(f'#EXTINF:-1, {channel_id}\n')
+        f.write(f'#EXTINF:-1, {{name}\n')
         f.write(f'{source}\n')
 
 print("已生成 live_streams.m3u 文件")
