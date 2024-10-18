@@ -34,4 +34,42 @@ try:
     """)
 
     # 获取默认直播源
-    video_element = WebDriverWait
+    video_element = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.ID, 'videoBox'))
+    )
+    default_live_url = video_element.get_attribute('src')
+    live_sources.append(default_live_url)
+    print(f"找到默认直播源: {default_live_url}")
+
+    # 循环抓取其他频道
+    for i in range(2, 11):  # 假设频道从2到10，你可以根据实际情况调整范围
+        # 调用滑动的 JavaScript，使用 swiper.slideTo() 方法
+        driver.execute_script(f"swiper.slideTo({i}, 1000, false);")
+        time.sleep(2)  # 等待滑动动画结束
+        
+        # 获取当前直播源
+        video_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, 'videoBox'))
+        )
+        current_live_url = video_element.get_attribute('src')
+
+        if current_live_url not in live_sources:
+            live_sources.append(current_live_url)
+            print(f"当前直播源: {current_live_url}")
+        else:
+            print(f"未检测到新直播源，跳过第 {i} 频道")
+
+except Exception as e:
+    print(f"发生错误: {e}")
+finally:
+    # 关闭浏览器
+    driver.quit()
+
+# 生成 .m3u 文件
+with open('live_streams.m3u', 'w') as f:
+    f.write('#EXTM3U\n')
+    for index, source in enumerate(live_sources, start=1):
+        f.write(f'#EXTINF:-1, Channel {index}\n')
+        f.write(f'{source}\n')
+
+print("已生成 live_streams.m3u 文件")
