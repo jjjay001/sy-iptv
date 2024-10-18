@@ -30,7 +30,7 @@ try:
     # 获取默认直播源
     video_element = driver.find_element(By.ID, 'videoBox')
     default_live_url = video_element.get_attribute('src')
-    live_sources.append(default_live_url)
+    live_sources.append(("默认频道", default_live_url))  # 使用默认频道名称
     print(f"找到默认直播源: {default_live_url}")
 
     # 获取页面的尺寸信息
@@ -43,17 +43,22 @@ try:
     y_position = screen_height / 3  # 纵向位置位于屏幕上三分之一
     move_distance = -100  # 设置每次滑动的距离
     double_move_distance = move_distance * 2  # 设置双倍滑动距离
-    
+
     # 通过鼠标拖动事件滑动切换频道
     action = ActionChains(driver)
 
     channel_count = 9  # 假设有10个频道
-    for i in range(1, channel_count + 1):
+        
+        # 根据频道编号决定滑动距离
+        if i == 5 or i == 8:
+            move = double_move_distance  # 第五次和第八次滑动距离为其他滑动的两倍
+        else:
+            move = move_distance  # 其他滑动的距离
 
         print(f"滑动到频道 {i}")
         try:
             # 执行滑动操作
-            action.move_by_offset(start_x, y_position).click_and_hold().move_by_offset(move_distance, 0).release().perform()
+            action.move_by_offset(start_x, y_position).click_and_hold().move_by_offset(move, 0).release().perform()
 
             time.sleep(3)  # 等待页面完全加载
 
@@ -62,6 +67,9 @@ try:
                 EC.presence_of_element_located((By.ID, 'videoBox'))
             )
             current_live_url = video_element.get_attribute('src')
+
+            # 获取频道 ID（假设可以通过一些方式获取，具体取决于你的页面结构）
+            channel_id = f"频道 {i}"
 
             # 不将第五次和第八次的直播源加入到live_sources列表中
             if current_live_url != default_live_url:
@@ -87,8 +95,8 @@ finally:
 # 生成 .m3u 文件
 with open('live_streams.m3u', 'w') as f:
     f.write('#EXTM3U\n')
-    for index, source in enumerate(live_sources, start=1):
-        f.write(f'#EXTINF:-1, Channel {channel_id}\n')
+    for channel_id, source in live_sources:
+        f.write(f'#EXTINF:-1, {channel_id}\n')
         f.write(f'{source}\n')
 
 print("已生成 live_streams.m3u 文件")
