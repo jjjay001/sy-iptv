@@ -18,13 +18,13 @@ driver = webdriver.Chrome(options=options)
 live_sources = []
 # 频道名称映射
 channel_id = {
-    频道 1: "农林卫视",
-    频道 2: "新闻综合",
-    频道 3: "都市青春",
-    频道 4: "陕西生活",
-    频道 6: "陕西公共",
-    频道 7: "陕西体育",
-    频道 9: "陕西移动"
+    1: "农林卫视",
+    2: "新闻综合",
+    3: "都市青春",
+    4: "陕西生活",
+    6: "陕西公共",
+    7: "陕西体育",
+    9: "陕西移动"
 }
     
 try:
@@ -79,7 +79,7 @@ try:
             current_live_url = video_element.get_attribute('src')
 
             # 获取频道 ID（假设可以通过一些方式获取，具体取决于你的页面结构）
-            channel_id = f"频道 {i}"
+            channel_id = f"{i}"
 
             # 不将第五次和第八次的直播源加入到live_sources列表中
             if current_live_url != default_live_url:
