@@ -22,62 +22,45 @@ try:
     url = "http://m.snrtv.com/snrtv_tv/index.html"  # 替换为实际的直播页面URL
     driver.get(url)
 
-    # 初始化ActionChains用于执行滑动操作
+    # 等待页面加载并找到暂停按钮
+    pause_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.CLASS_NAME, 'animationPause'))
+    )
+    pause_button.click()
+    print("已点击暂停按钮，频道图标显示出来")
+
+    # 定位所有频道的li元素
+    channel_icons = WebDriverWait(driver, 10).until(
+        EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'li.swiper-slide'))
+    )
+
     actions = ActionChains(driver)
 
-    # 等待视频标签出现
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.TAG_NAME, 'video'))
-    )
+    for index, icon in enumerate(channel_icons):
+        # 模拟点击频道图标
+        icon.click()
+        print(f"已点击频道 {index + 1} 图标")
 
-    # 检查并获取当前播放的直播源
-    live_source = driver.find_element(By.TAG_NAME, 'video')
-    
-    # 等待视频准备好
-    WebDriverWait(driver, 10).until(
-        lambda driver: driver.execute_script("""
-            let video = document.querySelector('video');
-            return video && video.readyState === 4 && video.src;
-        """)
-    )
-    
-    # 获取当前直播源的 URL
-    live_url = live_source.get_attribute('src')
-    live_sources.append(live_url)
-    print(f"找到默认频道的直播源: {live_url}")
+        # 点击播放按钮
+        play_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CLASS_NAME, 'animationPlay'))
+        )
+        play_button.click()
+        print(f"已点击频道 {index + 1} 的播放按钮")
 
-    # 假设我们需要抓取的频道数量
-    num_channels = 5  # 替换为实际频道数量
+        # 获取当前直播源
+        live_source = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.TAG_NAME, 'video'))
+        )
+        live_url = live_source.get_attribute('src')
+        live_sources.append(live_url)
+        print(f"找到频道 {index + 1} 的直播源: {live_url}")
 
-    for index in range(num_channels - 1):  # 从0到num_channels-1，最后一个频道不需要滑动
-        # 暂停当前视频
-        driver.execute_script("document.querySelector('video').pause();")
+        # 暂停当前频道播放（每次获取到直播源后暂停当前频道）
+        pause_button.click()
 
-        # 滑动到下一个频道图标
-        channel_icons = driver.find_elements(By.CLASS_NAME, 'channel-icon')  # 假设频道图标的类名是 'channel-icon'
-        
-        if index < len(channel_icons) - 1:  # 避免越界
-            next_icon = channel_icons[index + 1]
-            driver.execute_script("arguments[0].scrollIntoView();", next_icon)
-            time.sleep(1)  # 等待滚动完成
-
-            # 点击播放按钮
-            play_button = next_icon.find_element(By.CLASS_NAME, 'play-button')  # 假设播放按钮的类名是 'play-button'
-            play_button.click()
-
-            # 等待视频加载并获取新的直播源
-            WebDriverWait(driver, 10).until(
-                lambda driver: driver.execute_script("""
-                    let video = document.querySelector('video');
-                    return video && video.readyState === 4 && video.src;
-                """)
-            )
-            # 获取新的直播源的 URL
-            live_url = live_source.get_attribute('src')
-            live_sources.append(live_url)
-            print(f"找到频道 {index + 2} 的直播源: {live_url}")
-        else:
-            print("已达到最后一个频道，停止滑动。")
+        # 等待切换
+        time.sleep(2)
 
 except Exception as e:
     print(f"发生错误: {e}")
