@@ -48,6 +48,10 @@ try:
 
     channel_count = 10  # 假设有10个频道
     for i in range(1, channel_count + 1):
+        if i == 9:  # 跳过频道9
+            print("跳过频道 9（购物台）")
+            continue
+        
         print(f"滑动到频道 {i}")
         try:
             # 执行滑动操作
@@ -64,15 +68,11 @@ try:
             if current_live_url != default_live_url:
                 live_sources.append(current_live_url)
                 print(f"当前直播源: {current_live_url}")
-                default_live_url = current_live_url  # 更新默认直播源为当前直播源
             else:
                 print(f"未检测到新直播源，当前仍为默认频道")
 
         except Exception as e:
-            print(f"滑动操作失败: {e}")
-
-        # 在每次滑动后，重置ActionChains以防止链条问题
-        action.reset_actions()
+            print(f"滑动频道 {i} 时发生错误: {e}")
 
 except Exception as e:
     print(f"发生错误: {e}")
