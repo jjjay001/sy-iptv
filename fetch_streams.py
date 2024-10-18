@@ -27,6 +27,12 @@ channel_ys = {
     9: "陕西移动"
 }
 
+# 添加的直播源
+additional_sources = [
+    ("凤凰卫视中文台", "http://58.144.154.93/qctv.fengshows.cn/live/0701pcc48.m3u8"),
+    ("香港卫视", "http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8")
+]
+
 try:
     # 打开目标网页
     url = "http://m.snrtv.com/snrtv_tv/index.html"  # 替换为实际的直播页面URL
@@ -99,6 +105,12 @@ finally:
 # 生成 .m3u 文件
 with open('live_streams.m3u', 'w', encoding='utf-8') as f:
     f.write('#EXTM3U\n')
+
+    # 先写入额外的直播源
+    for channel_name, source in additional_sources:
+        f.write(f'#EXTINF:-1, {channel_name}\n')
+        f.write(f'{source}\n')
+    
     for channel_id, source in live_sources:
         channel_name = channel_ys.get(channel_id, "陕西卫视")  # 获取频道名称
         # 写入频道信息，-1 表示持续时间未知
