@@ -1,0 +1,29 @@
+name: Auto Update GitCode Repository
+
+# 定时任务设置为每天凌晨2点执行，cron 表达式格式为 "minute hour day-of-month month day-of-week"
+on:
+  schedule:
+    - cron: "0 21 * * *"  # 每天凌晨2点
+
+jobs:
+  update-gitcode:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: 检出当前 GitHub 仓库的代码
+      - name: Checkout current GitHub repo
+        uses: actions/checkout@v2
+
+      # Step 2: 配置 GitCode 仓库的拉取和推送，替换以下URL和GitCode仓库信息
+      - name: Update GitCode repository
+        run: |
+          git config --global user.name "anxing123"
+          git config --global user.email "315723172@qq.com"
+          git clone https://gitcode.com/anxing123/sxdx.git
+          cd your-gitcode-repo
+          git pull origin main
+          
+          # 如果需要推送更新到 GitCode 仓库
+          git add .
+          git commit -m "Auto-update from GitHub Actions"
+          git push origin main
