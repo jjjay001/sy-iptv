@@ -4,6 +4,7 @@ name: Auto Update GitCode Repository
 on:
   schedule:
     - cron: "0 21 * * *"  # 每天凌晨2点
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
   update-gitcode:
