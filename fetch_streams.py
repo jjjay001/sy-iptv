@@ -103,7 +103,7 @@ finally:
     driver.quit()
 
 # 生成 .m3u 文件
-with open('live_streams.m3u', 'w', encoding='utf-8') as f:
+with open('陕西台.m3u', 'w', encoding='utf-8') as f:
     f.write('#EXTM3U\n')
 
     # 先写入额外的直播源
@@ -117,4 +117,4 @@ with open('live_streams.m3u', 'w', encoding='utf-8') as f:
         f.write(f'#EXTINF:-1, {channel_name}\n')
         f.write(f'{source}\n')
 
-print("已生成 live_streams.m3u 文件")
+print("已生成 陕西台.m3u 文件")
