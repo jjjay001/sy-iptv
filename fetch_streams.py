@@ -30,7 +30,8 @@ channel_ys = {
 # 添加的直播源
 additional_sources = [
     ("凤凰卫视中文台", "http://58.144.154.93/qctv.fengshows.cn/live/0701pcc48.m3u8"),
-    ("香港卫视", "http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8")
+    ("香港卫视", "http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8"),
+    ("渭南新闻",http://222.90.3.234:8888/rtp/239.111.205.19:5140)
 ]
 
 try:
