@@ -6,6 +6,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'fetch_streams.py'  # 仅当 fetch_streams.py 文件被修改时触发
   workflow_dispatch:
 
 jobs:
