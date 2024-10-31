@@ -31,11 +31,11 @@ channel_ys = {
 additional_sources = [
        
     ("凤凰中文","http://211.72.65.236:8577/.m3u8"),
-    ("凤凰资讯","http://avd.iptviptv.site:9694/hls/732/index.m3u8"),
+   # ("凤凰资讯","http://avd.iptviptv.site:9694/hls/732/index.m3u8"),
     ("香港卫视", "http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8"),
     ("渭南新闻", "http://36.46.98.55:8010/rtp/239.111.205.19:5140"),
-    ("陕西影视", "http://[2409:8087:7000:20:1000::22]:6060/yinhe/2/ch00000090990000001730/index.m3u8?virtualDomain=yinhe.live_hls.zte.com"),
-    ("西部影视","http://[2409:8087:7000:20:1000::22]:6060/yinhe/2/ch00000090990000001749/index.m3u8?virtualDomain=yinhe.live_hls.zte.com")
+   # ("陕西影视", "http://[2409:8087:7000:20:1000::22]:6060/yinhe/2/ch00000090990000001730/index.m3u8?virtualDomain=yinhe.live_hls.zte.com"),
+   # ("西部影视","http://[2409:8087:7000:20:1000::22]:6060/yinhe/2/ch00000090990000001749/index.m3u8?virtualDomain=yinhe.live_hls.zte.com")
   #  ("渭南新闻1","http://117.32.85.85:8020/rtp/239.111.205.94:5140"),
   #  ("渭南新闻2","http://117.32.85.85:8020/rtp/239.110.205.37:9854")
 ]
