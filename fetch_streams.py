@@ -29,11 +29,13 @@ channel_ys = {
 
 # 添加的直播源
 additional_sources = [
-       
+
+    ("大爱频道1","https://pulltv1.wanfudaluye.com/live/tv1.m3u8"),
+    ("大爱频道2","https://pulltv2.wanfudaluye.com/live/tv2.m3u8"),
+    ("渭南新闻", "http://117.32.85.85:8012/rtp/239.111.205.19:5140"),
     ("凤凰中文","http://aktv.top/AKTV/live/aktv/null-3/AKTV.m3u8"),
     ("凤凰资讯","http://aktv.top/AKTV/live/aktv/null-4/AKTV.m3u8"),
     ("香港卫视", "http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8"),
-    ("渭南新闻", "http://117.32.85.85:8012/rtp/239.111.205.19:5140"),
     ("美亚电影", "http://aktv.top/AKTV/live/aktv/hk-1/AKTV.m3u8"),
     ("翡翠台","http://aktv.top/AKTV/live/aktv/null/AKTV.m3u8"),
     ("中天亚洲","http://aktv.top/AKTV/live/aktv/null-12/AKTV.m3u8"),
@@ -112,15 +114,15 @@ finally:
 # 生成 .m3u 文件
 with open('ShaanxiTV.m3u', 'w', encoding='utf-8') as f:
     f.write('#EXTM3U\n')
-
-    # 先写入额外的直播源
-    for channel_name, source in additional_sources:
-        f.write(f'#EXTINF:-1, {channel_name}\n')
-        f.write(f'{source}\n')
     
     for channel_id, source in live_sources:
         channel_name = channel_ys.get(channel_id, "陕西卫视")  # 获取频道名称
         # 写入频道信息，-1 表示持续时间未知
+        f.write(f'#EXTINF:-1, {channel_name}\n')
+        f.write(f'{source}\n')
+
+# 后写入额外的直播源
+    for channel_name, source in additional_sources:
         f.write(f'#EXTINF:-1, {channel_name}\n')
         f.write(f'{source}\n')
 
