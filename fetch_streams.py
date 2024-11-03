@@ -32,7 +32,7 @@ additional_sources = [
 
     ("大爱频道1","https://pulltv1.wanfudaluye.com/live/tv1.m3u8"),
     ("大爱频道2","https://pulltv2.wanfudaluye.com/live/tv2.m3u8"),
-    ("渭南新闻", "http://117.32.85.85:8012/rtp/239.111.205.19:5140"),
+    ("渭南新闻", "http://117.32.85.85:8020/rtp/239.111.205.19:5140"),
     ("凤凰中文","http://aktv.top/AKTV/live/aktv/null-3/AKTV.m3u8"),
     ("凤凰资讯","http://aktv.top/AKTV/live/aktv/null-4/AKTV.m3u8"),
     ("香港卫视", "http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8"),
