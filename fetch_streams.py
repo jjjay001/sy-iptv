@@ -37,13 +37,13 @@ additional_sources = [
 #    ("西部影视","http://112.46.85.60:8009/hls/62/index.m3u8"),
 #    ("西安一套","http://112.46.85.60:8009/hls/28/index.m3u8"),
 #    ("西安二套","http://112.46.85.60:8009/hls/29/index.m3u8"),
-    ("凤凰中文","http://aktv.top/AKTV/live/aktv/null-3/AKTV.m3u8"),
-    ("凤凰资讯","http://aktv.top/AKTV/live/aktv/null-4/AKTV.m3u8"),
+ #   ("凤凰中文","http://aktv.top/AKTV/live/aktv/null-3/AKTV.m3u8"),
+ #   ("凤凰资讯","http://aktv.top/AKTV/live/aktv/null-4/AKTV.m3u8"),
     ("香港卫视", "http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8"),
-    ("龍華电影", "http://aktv.top/AKTV/live/aktv/null-23/AKTV.m3u8"),
-    ("翡翠台","http://aktv.top/AKTV/live/aktv/null/AKTV.m3u8"),
-    ("中天亚洲","http://aktv.top/AKTV/live/aktv/null-12/AKTV.m3u8"),
-    ("中天新闻","http://aktv.top/AKTV/live/aktv/null-8/AKTV.m3u8")
+  #  ("龍華电影", "http://aktv.top/AKTV/live/aktv/null-23/AKTV.m3u8"),
+ #   ("翡翠台","http://aktv.top/AKTV/live/aktv/null/AKTV.m3u8"),
+  #  ("中天亚洲","http://aktv.top/AKTV/live/aktv/null-12/AKTV.m3u8"),
+   # ("中天新闻","http://aktv.top/AKTV/live/aktv/null-8/AKTV.m3u8")
 ]
 
 try:
