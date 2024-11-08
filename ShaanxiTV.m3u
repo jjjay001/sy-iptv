@@ -21,5 +21,9 @@ https://pulltv1.wanfudaluye.com/live/tv1.m3u8
 https://pulltv2.wanfudaluye.com/live/tv2.m3u8
 #EXTINF:-1, 渭南新闻
 http://117.32.85.85:8025/rtp/239.111.205.19:5140
+#EXTINF:-1, 凤凰中文
+http://203.205.220.174:80/qctv.fengshows.cn/live/0701pin72.m3u8
+#EXTINF:-1, 凤凰资讯
+http://211.72.65.236:8576/.m3u8
 #EXTINF:-1, 香港卫视
 http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8
