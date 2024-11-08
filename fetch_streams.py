@@ -40,7 +40,7 @@ additional_sources = [
     ("凤凰中文","http://203.205.220.174:80/qctv.fengshows.cn/live/0701pin72.m3u8"),
     ("凤凰资讯","http://211.72.65.236:8576/.m3u8"),
     ("香港卫视", "http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8"),
-  #  ("龍華电影", "http://aktv.top/AKTV/live/aktv/null-23/AKTV.m3u8"),
+    ("龍華电影", "http://37.27.111.214:8080/live/19/hls.m3u8"),
  #   ("翡翠台","http://aktv.top/AKTV/live/aktv/null/AKTV.m3u8"),
   #  ("中天亚洲","http://aktv.top/AKTV/live/aktv/null-12/AKTV.m3u8"),
    # ("中天新闻","http://aktv.top/AKTV/live/aktv/null-8/AKTV.m3u8")
