@@ -27,3 +27,5 @@ http://203.205.220.174:80/qctv.fengshows.cn/live/0701pin72.m3u8
 http://211.72.65.236:8576/.m3u8
 #EXTINF:-1, 香港卫视
 http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8
+#EXTINF:-1, 龍華电影
+http://37.27.111.214:8080/live/19/hls.m3u8
