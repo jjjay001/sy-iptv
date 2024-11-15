@@ -32,8 +32,8 @@ additional_sources = [
 
     ("大爱频道1","https://pulltv1.wanfudaluye.com/live/tv1.m3u8"),
     ("大爱频道2","https://pulltv2.wanfudaluye.com/live/tv2.m3u8"),
-    ("渭南新闻", "http://117.32.85.85:8025/rtp/239.111.205.19:5140"),
-#    ("陕西影视","http://112.46.85.60:8009/hls/21/index.m3u8"),
+    ("渭南新闻", "http://zycfcdn.gdwlcloud.com/PLTV/88888888/224/3221225818/index.m3u8"),
+    ("渭南临渭","http://zycfcdn.gdwlcloud.com/PLTV/88888888/224/3221226056/index.m3u8"),
     ("西部影视","http://112.46.85.60:8009/hls/62/index.m3u8"),
 #    ("西安一套","http://112.46.85.60:8009/hls/28/index.m3u8"),
 #    ("西安二套","http://112.46.85.60:8009/hls/29/index.m3u8"),
