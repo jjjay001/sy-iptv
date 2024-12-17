@@ -21,12 +21,12 @@ https://pulltv1.wanfudaluye.com/live/tv1.m3u8
 https://pulltv2.wanfudaluye.com/live/tv2.m3u8
 #EXTINF:-1, 宝鸡一套
 http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.26:9224
-#EXTINF:-1, 渭南一套
-http://8.138.90.107/tv/proxy/sx1/ql.php?id=5915
+#EXTINF:-1, 宝鸡二套
+http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.27:9232
 #EXTINF:-1, 西部影视
-http://112.46.85.60:8009/hls/62/index.m3u8
+http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.128:7764
 #EXTINF:-1, 西安一套
-http://112.46.85.60:8009/hls/28/index.m3u8
+http://8.138.90.107/tv/proxy/sx1/ql.php?id=5970
 #EXTINF:-1, 西安二套
 http://112.46.85.60:8009/hls/29/index.m3u8
 #EXTINF:-1, 凤凰中文
