@@ -32,6 +32,11 @@ additional_sources = [
 
     ("大爱频道1","https://pulltv1.wanfudaluye.com/live/tv1.m3u8"),
     ("大爱频道2","https://pulltv2.wanfudaluye.com/live/tv2.m3u8"),
+    ("西安综合","https://xatv-yt.xiancity.cn/live/1/index.m3u8"),
+    ("西安都市","https://xatv-yt.xiancity.cn/live/2/index.m3u8"),
+    ("西安商务资讯","https://xatv-yt.xiancity.cn/live/3/index.m3u8"),
+    ("西安影视","https://xatv-yt.xiancity.cn/live/4/index.m3u8"),
+    ("西安丝路","https://xatv-yt.xiancity.cn/live/5/index.m3u8"),
     ("宝鸡一套","http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.26:9224"),
     ("西部影视","http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.128:7764"),
     ("陕西影视","http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.131:7752"),
