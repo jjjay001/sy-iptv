@@ -15,6 +15,8 @@ https://xatv-yt.xiancity.cn/live/4/index.m3u8
 https://xatv-yt.xiancity.cn/live/5/index.m3u8
 #EXTINF:-1, 宝鸡一套
 http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.26:9224
+#EXTINF:-1, 宝鸡二套
+http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.27:9232
 #EXTINF:-1, 西部影视
 http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.128:7764
 #EXTINF:-1, 陕西影视
