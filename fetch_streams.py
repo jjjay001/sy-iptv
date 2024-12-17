@@ -41,7 +41,7 @@ additional_sources = [
     ("宝鸡二套","http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.27:9232"),
     ("西部影视","http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.128:7764"),
     ("陕西影视","http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.131:7752"),
-    ("陕视融媒","http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.52:9934"),
+    ("陕视融媒体","http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.52:9934"),
     ("凤凰中文","http://aktv.top/AKTV/live/aktv/null-3/AKTV.m3u8"),
     ("凤凰资讯","http://aktv.top/AKTV/live/aktv/null-4/AKTV.m3u8"),
     ("香港卫视", "http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8"),
