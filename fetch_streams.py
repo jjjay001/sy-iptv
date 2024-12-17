@@ -38,6 +38,7 @@ additional_sources = [
     ("西安影视","https://xatv-yt.xiancity.cn/live/4/index.m3u8"),
     ("西安丝路","https://xatv-yt.xiancity.cn/live/5/index.m3u8"),
     ("宝鸡一套","http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.26:9224"),
+    ("宝鸡二套","http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.27:9232"),
     ("西部影视","http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.128:7764"),
     ("陕西影视","http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.131:7752"),
     ("陕视融媒","http://8.138.90.107/tv/proxy/sx1/zb.php?id=239.110.205.52:9934"),
