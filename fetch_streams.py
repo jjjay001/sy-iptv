@@ -49,8 +49,8 @@ additional_sources = [
     ("翡翠台","http://aktv.top/AKTV/live/aktv/null/AKTV.m3u8"),
     ("中天亚洲","http://aktv.top/AKTV/live/aktv/null-12/AKTV.m3u8"),
     ("中天新闻","http://aktv.top/AKTV/live/aktv/null-8/AKTV.m3u8"),
-    #EXTINF:-1 logo="" group-title="YY频道" ,神探狄仁杰2
-    http://live.nctv.top/6688/yy.php?id=1382828767
+    (#EXTINF:-1 logo="" group-title="YY频道" ,神探狄仁杰2
+    http://live.nctv.top/6688/yy.php?id=1382828767)
 ]
 
 try:
