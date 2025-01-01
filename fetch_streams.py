@@ -24,7 +24,7 @@ channel_ys = {
     4: "秦腔",
     5: "体育休闲",
     7: "移动",
-    8: "陕西移动"
+    8: "陕西卫视"
 }
 
 # 添加的直播源
@@ -122,7 +122,7 @@ try:
     # 通过鼠标拖动事件滑动切换频道
     action = ActionChains(driver)
 
-    channel_count = 9  # 假设有9个频道
+    channel_count = 8  # 假设有8个频道
     for i in range(1, channel_count + 1):
         move = move_distance  
         print(f"滑动到频道 {i}")
