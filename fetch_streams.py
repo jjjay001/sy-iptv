@@ -143,7 +143,7 @@ try:
 
             # 不将第五次和第八次的直播源加入到live_sources列表中
             if current_live_url != default_live_url:
-                if i not in [5, 8]:  # 第五次和第八次不加入
+                if i not in [8]:  # 第五次和第八次不加入
                     live_sources.append((channel_id, current_live_url))
                 print(f"{channel_id}: 当前直播源: {current_live_url}")
                 default_live_url = current_live_url  # 更新默认直播源为当前直播源
