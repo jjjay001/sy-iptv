@@ -18,12 +18,12 @@ driver = webdriver.Chrome(options=options)
 live_sources = []
 # 频道名称映射
 channel_ys = {
-    1: "新闻综合",
-    2: "新闻综合",
-    3: "都市青春",
-    4: "陕西生活",
-    6: "陕西公共",
-    7: "陕西体育",
+    1: "新闻资讯",
+    2: "都市青春",
+    3: "银龄",
+    4: "秦腔",
+    6: "体育休闲",
+    7: "移动",
     9: "陕西移动"
 }
 
@@ -106,7 +106,7 @@ try:
     # 获取默认直播源
     video_element = driver.find_element(By.ID, 'videoBox')
     default_live_url = video_element.get_attribute('src')
-    live_sources.append(("陕西卫视", default_live_url))  # 使用默认频道名称
+    live_sources.append(("农林卫视", default_live_url))  # 使用默认频道名称
     print(f"找到默认直播源: {default_live_url}")
 
     # 获取页面的尺寸信息
@@ -143,7 +143,7 @@ try:
 
             # 不将第五次和第八次的直播源加入到live_sources列表中
             if current_live_url != default_live_url:
-                if i not in [6]:  # 第五次和第八次不加入
+                if i not in [6]:  # 第6次不加入
                     live_sources.append((channel_id, current_live_url))
                 print(f"{channel_id}: 当前直播源: {current_live_url}")
                 default_live_url = current_live_url  # 更新默认直播源为当前直播源
