@@ -83,12 +83,10 @@ additional_sources = [
 ("百家讲坛――之明太祖朱元璋","http://live.nctv.top/6688/yy.php?id=1354936149"),
 ("热血动作片合集","http://live.nctv.top/6688/yy.php?id=1382735627"),
 ("忠烈杨家将","http://live.nctv.top/6688/yy.php?id=1382749909"),
-("天龙八部","http://live.nctv.top/6688/yy.php?id=1382749944"),
-("仙剑奇侠传-神仙姐姐驾到","http://live.nctv.top/6688/yy.php?id=1382749903"),
+("仙剑奇侠传","http://live.nctv.top/6688/yy.php?id=1382749903"),
 ("大时代","http://live.nctv.top/6688/yy.php?id=1354930891"),
 ("聊斋志异S1","http://live.nctv.top/6688/yy.php?id=1382736975"),
 ("法证先锋Ⅲ","http://live.nctv.top/6688/yy.php?id=1382736802"),
-("末日系列-外国电影合集","http://live.nctv.top/6688/yy.php?id=1354889019"),
 ("大汉贤后卫子夫","http://live.nctv.top/6688/yy.php?id=1382735569"),
 ("大汉天子S2","http://live.nctv.top/6688/yy.php?id=1382736807")
 ]
