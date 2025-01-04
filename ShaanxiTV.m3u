@@ -33,16 +33,14 @@ https://xatv-yt.xiancity.cn/live/5/index.m3u8
 http://aktv.top/AKTV/live/aktv/null-3/AKTV.m3u8
 #EXTINF:-1, 凤凰资讯
 http://aktv.top/AKTV/live/aktv/null-4/AKTV.m3u8
+#EXTINF:-1, 寰宇新闻
+http://aktv.top/AKTV/live/aktv/null-9/AKTV.m3u8
 #EXTINF:-1, 香港卫视
 http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8
 #EXTINF:-1, 龍華电影
 http://aktv.top/AKTV/live/aktv/null-23/AKTV.m3u8
 #EXTINF:-1, 翡翠台
 http://aktv.top/AKTV/live/aktv/null/AKTV.m3u8
-#EXTINF:-1, 中天亚洲
-http://aktv.top/AKTV/live/aktv/null-12/AKTV.m3u8
-#EXTINF:-1, 中天新闻
-http://aktv.top/AKTV/live/aktv/null-8/AKTV.m3u8
 #EXTINF:-1, 宰相刘罗锅
 http://live.nctv.top/6688/yy.php?id=1382745191
 #EXTINF:-1, 神探狄仁杰2
@@ -91,8 +89,6 @@ http://live.nctv.top/6688/yy.php?id=1382736879
 http://live.nctv.top/6688/yy.php?id=1382749901
 #EXTINF:-1, 金婚
 http://live.nctv.top/6688/yy.php?id=1382736832
-#EXTINF:-1, 超炫科幻大片
-http://live.nctv.top/6688/yy.php?id=1382736840
 #EXTINF:-1, 无敌县令
 http://live.nctv.top/6688/yy.php?id=1354932390
 #EXTINF:-1, 黑冰
@@ -103,12 +99,8 @@ http://live.nctv.top/6688/yy.php?id=1354930979
 http://live.nctv.top/6688/yy.php?id=1382736810
 #EXTINF:-1, 天下第一
 http://live.nctv.top/6688/yy.php?id=1382736838
-#EXTINF:-1, 漫威超级英雄系列
-http://live.nctv.top/6688/yy.php?id=1354932402
 #EXTINF:-1, 百家讲坛――之明太祖朱元璋
 http://live.nctv.top/6688/yy.php?id=1354936149
-#EXTINF:-1, 热血动作片合集
-http://live.nctv.top/6688/yy.php?id=1382735627
 #EXTINF:-1, 忠烈杨家将
 http://live.nctv.top/6688/yy.php?id=1382749909
 #EXTINF:-1, 仙剑奇侠传
