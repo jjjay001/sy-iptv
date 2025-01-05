@@ -44,7 +44,7 @@ additional_sources = [
     ("龍華电影", "http://aktv.top/AKTV/live/aktv/null-23/AKTV.m3u8"),
     ("翡翠台","http://aktv.top/AKTV/live/aktv/null/AKTV.m3u8"),
     ("老高与小沫","https://www.goodiptv.club/douyu/236461"),
-    ("group-title=电影欣赏,","宰相刘罗锅","http://live.nctv.top/6688/yy.php?id=1382745191"),
+    ("\"group-title=电影欣赏,宰相刘罗锅","http://live.nctv.top/6688/yy.php?id=1382745191"),
 ("神探狄仁杰2","http://live.nctv.top/6688/yy.php?id=1382828767"),
 ("举起手来-惊险抗日","http://live.nctv.top/6688/yy.php?id=1382736877"),
 ("神探狄仁杰1","http://live.nctv.top/6688/yy.php?id=1354930934"),
@@ -162,8 +162,8 @@ with open('ShaanxiTV.m3u', 'w', encoding='utf-8') as f:
         f.write(f'{source}\n')
 
 # 后写入额外的直播源
-    for channel_name,pindao, source in additional_sources:
-        f.write(f'#EXTINF:-1, {pindao},{channel_name}\n')
+    for channel_name, source in additional_sources:
+        f.write(f'#EXTINF:-1, {channel_name}\n')
         f.write(f'{source}\n')
 
 print("已生成 ShaanxiTV.m3u 文件")
