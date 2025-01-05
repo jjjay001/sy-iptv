@@ -69,6 +69,8 @@ additional_sources = [
 ("金婚","http://live.nctv.top/6688/yy.php?id=1382736832"),
 ("无敌县令","http://live.nctv.top/6688/yy.php?id=1354932390"),
 ("黑冰","http://live.nctv.top/6688/yy.php?id=1354932427"),
+("大汉天子S1","https://live.metshop.top/yy/1382749902"),
+("大汉天子S2","http://live.nctv.top/6688/yy.php?id=1382736807")
 ("大汉天子S3","http://live.nctv.top/6688/yy.php?id=1382736810"),
 ("天下第一","http://live.nctv.top/6688/yy.php?id=1382736838"),
 ("百家讲坛――之明太祖朱元璋","http://live.nctv.top/6688/yy.php?id=1354936149"),
@@ -77,8 +79,7 @@ additional_sources = [
 ("大时代","http://live.nctv.top/6688/yy.php?id=1354930891"),
 ("聊斋志异S1","http://live.nctv.top/6688/yy.php?id=1382736975"),
 ("法证先锋Ⅲ","http://live.nctv.top/6688/yy.php?id=1382736802"),
-("大汉贤后卫子夫","http://live.nctv.top/6688/yy.php?id=1382735569"),
-("大汉天子S2","http://live.nctv.top/6688/yy.php?id=1382736807")
+("大汉贤后卫子夫","http://live.nctv.top/6688/yy.php?id=1382735569")
 ]
 
 try:
