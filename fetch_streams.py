@@ -43,6 +43,7 @@ additional_sources = [
     ("香港卫视", "http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8"),
     ("龍華电影", "http://aktv.top/AKTV/live/aktv/null-23/AKTV.m3u8"),
     ("翡翠台","http://aktv.top/AKTV/live/aktv/null/AKTV.m3u8"),
+    ("老高与小沫","https://www.goodiptv.club/douyu/236461"),
     ("宰相刘罗锅","http://live.nctv.top/6688/yy.php?id=1382745191"),
 ("神探狄仁杰2","http://live.nctv.top/6688/yy.php?id=1382828767"),
 ("举起手来-惊险抗日","http://live.nctv.top/6688/yy.php?id=1382736877"),
