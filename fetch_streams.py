@@ -48,7 +48,7 @@ additional_sources = [
     ("group-title=\"影视轮播\",宰相刘罗锅","http://live.nctv.top/6688/yy.php?id=1382745191"),
     ("group-title=\"影视轮播\",血色浪漫","https://lunbo.freetv.top/yy/1351186084"),
     ("group-title=\"影视轮播\",福贵","https://lunbo.freetv.top/yy/1351186084"),
-    ("group-title=\"影视轮播\","少年包青天","https://lunbo.freetv.top/yy/1451866697"),
+    ("group-title=\"影视轮播\",少年包青天","https://lunbo.freetv.top/yy/1451866697"),
 ("group-title=\"影视轮播\",神探狄仁杰2","http://live.nctv.top/6688/yy.php?id=1382828767"),
 ("group-title=\"影视轮播\",举起手来-惊险抗日","http://live.nctv.top/6688/yy.php?id=1382736877"),
 ("group-title=\"影视轮播\",神探狄仁杰1","http://live.nctv.top/6688/yy.php?id=1354930934"),
