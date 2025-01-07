@@ -44,13 +44,21 @@ additional_sources = [
     ("龍華电影", "http://aktv.top/AKTV/live/aktv/null-23/AKTV.m3u8"),
     ("翡翠台","http://aktv.top/AKTV/live/aktv/null/AKTV.m3u8"),
     ("老高与小沫","https://www.goodiptv.club/douyu/236461"),
+    ("group-title=\"影视轮播\",济公","https://lunbo.freetv.top/yy/1351186084"),
     ("group-title=\"影视轮播\",宰相刘罗锅","http://live.nctv.top/6688/yy.php?id=1382745191"),
+    ("group-title=\"影视轮播\",血色浪漫","https://lunbo.freetv.top/yy/1351186084"),
+    ("group-title=\"影视轮播\",福贵","https://lunbo.freetv.top/yy/1351186084"),
+    ("group-title=\"影视轮播\","少年包青天","https://lunbo.freetv.top/yy/1451866697"),
+
+
+    
 ("group-title=\"影视轮播\",神探狄仁杰2","http://live.nctv.top/6688/yy.php?id=1382828767"),
 ("group-title=\"影视轮播\",举起手来-惊险抗日","http://live.nctv.top/6688/yy.php?id=1382736877"),
 ("group-title=\"影视轮播\",神探狄仁杰1","http://live.nctv.top/6688/yy.php?id=1354930934"),
 ("group-title=\"影视轮播\",笑傲江湖","http://live.nctv.top/6688/yy.php?id=1354930909"),
 ("group-title=\"影视轮播\",康熙王朝","http://live.nctv.top/6688/yy.php?id=1382736818"),
 ("group-title=\"影视轮播\",西游记后传","http://live.nctv.top/6688/yy.php?id=1382736846"),
+("group-title=\"影视轮播\",西游记张卫健版","https://lunbo.freetv.top/yy/1355652820"),
 ("group-title=\"影视轮播\",寻秦记-穿越剧经典","http://live.nctv.top/6688/yy.php?id=1382749900"),
 ("group-title=\"影视轮播\",天道-9.2高分好剧","http://live.nctv.top/6688/yy.php?id=1382735574"),
 ("group-title=\"影视轮播\",父母爱情","http://live.nctv.top/6688/yy.php?id=1354926650"),
