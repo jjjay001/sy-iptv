@@ -15,6 +15,8 @@ http://stream.snrtv.com/sxbc-7-hoEQU3.m3u8
 http://stream.snrtv.com/sxbc-yd-mrzX25.m3u8
 #EXTINF:-1, 陕西卫视
 http://stream.snrtv.com/sxbc-star-nsQWY8.m3u8
+#EXTINF:-1, 渭南综合
+http://[2409:8087:7008:20::a]/dbiptv.sn.chinamobile.com/PLTV/88888888/224/3221226376/1.m3u8
 #EXTINF:-1, 大爱频道1
 https://pulltv1.wanfudaluye.com/live/tv1.m3u8
 #EXTINF:-1, 大爱频道2
