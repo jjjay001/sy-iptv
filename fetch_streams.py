@@ -30,6 +30,7 @@ channel_ys = {
 # 添加的直播源
 additional_sources = [
 
+    ("渭南综合","http://[2409:8087:7008:20::a]/dbiptv.sn.chinamobile.com/PLTV/88888888/224/3221226376/1.m3u8"),
     ("大爱频道1","https://pulltv1.wanfudaluye.com/live/tv1.m3u8"),
     ("大爱频道2","https://pulltv2.wanfudaluye.com/live/tv2.m3u8"),
     ("西安综合","https://xatv-yt.xiancity.cn/live/1/index.m3u8"),
