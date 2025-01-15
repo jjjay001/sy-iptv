@@ -1,16 +1,20 @@
 #EXTM3U
 #EXTINF:-1, 农林卫视
 http://stream.snrtv.com/sxbc-nl-fRSTW1.m3u8
-#EXTINF:-1, 都市青春
+#EXTINF:-1, 新闻资讯
 http://stream.snrtv.com/sxbc-1-bdgiyM.m3u8
-#EXTINF:-1, 银龄
+#EXTINF:-1, 都市青春
 http://stream.snrtv.com/sxbc-2-wLOPQW.m3u8
-#EXTINF:-1, 体育休闲
+#EXTINF:-1, 银龄
 http://stream.snrtv.com/sxbc-3-cstxIY.m3u8
-#EXTINF:-1, 移动
+#EXTINF:-1, 秦腔
+http://stream.snrtv.com/sxbc-5-cfOQZ2.m3u8
+#EXTINF:-1, 体育休闲
 http://stream.snrtv.com/sxbc-7-mVWY09.m3u8
+#EXTINF:-1, 移动
+http://stream.snrtv.com/sxbc-yd-bctMP8.m3u8
 #EXTINF:-1, 陕西卫视
-http://tvplay.lejogo.com/sxtv6/cnwest.m3u8?auth_token=1909756800-20226157-2022618-ff6b71f2cbc1c9b95d91af67b1bac497
+http://stream.snrtv.com/sxbc-star-boCEMR.m3u8
 #EXTINF:-1, 大爱频道1
 https://pulltv1.wanfudaluye.com/live/tv1.m3u8
 #EXTINF:-1, 大爱频道2
@@ -35,8 +39,6 @@ http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8
 http://aktv.top/AKTV/live/aktv/null-23/AKTV.m3u8
 #EXTINF:-1, 翡翠台
 http://aktv.top/AKTV/live/aktv/null/AKTV.m3u8
-#EXTINF:-1, 老高与小沫
-https://www.goodiptv.club/douyu/236461
 #EXTINF:-1, group-title="影视轮播",济公
 https://lunbo.freetv.top/yy/1355265814
 #EXTINF:-1, group-title="影视轮播",宰相刘罗锅
