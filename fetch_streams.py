@@ -42,7 +42,7 @@ additional_sources = [
     ("凤凰资讯","http://aktv.top/AKTV/live/aktv/null-4/AKTV.m3u8"),
   #  ("寰宇新闻","http://aktv.top/AKTV/live/aktv/null-9/AKTV.m3u8"),
     ("香港卫视", "http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8"),
-    ("龍華电影", "http://aktv.top/AKTV/live/aktv/null-23/AKTV.m3u8"),
+   # ("龍華电影", "http://aktv.top/AKTV/live/aktv/null-23/AKTV.m3u8"),
     ("翡翠台","http://aktv.top/AKTV/live/aktv/null/AKTV.m3u8"),
    # ("老高与小沫","https://www.goodiptv.club/douyu/236461"),
     ("group-title=\"影视轮播\",济公","https://lunbo.freetv.top/yy/1355265814"),
