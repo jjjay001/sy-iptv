@@ -94,7 +94,7 @@ try:
     driver.get(url)
 
     # 等待页面完全加载
-    WebDriverWait(driver, 3).until(
+    WebDriverWait(driver, 5).until(
         EC.presence_of_element_located((By.ID, 'videoBox'))  # 确保视频盒子加载完毕
     )
 
