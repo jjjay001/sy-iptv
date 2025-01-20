@@ -1,4 +1,20 @@
 #EXTM3U
+#EXTINF:-1, 农林卫视
+http://stream.snrtv.com/sxbc-nl-lpCV89.m3u8
+#EXTINF:-1, 新闻资讯
+http://stream.snrtv.com/sxbc-1-iqxBC4.m3u8
+#EXTINF:-1, 都市青春
+http://stream.snrtv.com/sxbc-2-fglGR0.m3u8
+#EXTINF:-1, 银龄
+http://stream.snrtv.com/sxbc-3-aijmxJ.m3u8
+#EXTINF:-1, 秦腔
+http://stream.snrtv.com/sxbc-5-epstu9.m3u8
+#EXTINF:-1, 体育休闲
+http://stream.snrtv.com/sxbc-7-lruvJ3.m3u8
+#EXTINF:-1, 移动
+http://stream.snrtv.com/sxbc-yd-ajqL29.m3u8
+#EXTINF:-1, 陕西卫视
+http://stream.snrtv.com/sxbc-star-adfyDQ.m3u8
 #EXTINF:-1, 大爱频道1
 https://pulltv1.wanfudaluye.com/live/tv1.m3u8
 #EXTINF:-1, 大爱频道2
