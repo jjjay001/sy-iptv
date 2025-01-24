@@ -17,8 +17,6 @@ http://stream.snrtv.com/sxbc-yd-ajV126.m3u8
 http://stream.snrtv.com/sxbc-star-opvzEL.m3u8
 #EXTINF:-1, 大爱频道1
 https://pulltv1.wanfudaluye.com/live/tv1.m3u8
-#EXTINF:-1, 大爱频道2
-https://pulltv2.wanfudaluye.com/live/tv2.m3u8
 #EXTINF:-1, 西安综合
 https://xatv-yt.xiancity.cn/live/1/index.m3u8
 #EXTINF:-1, 西安都市
