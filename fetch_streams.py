@@ -23,16 +23,16 @@ channel_ys = {
     3: "都市青春",
     4: "银龄",
     5: "秦腔",
-    7: "体育休闲",
+    6: "体育休闲",
     8: "移动"
 }
 
 # 添加的直播源
 additional_sources = [
 
-    ("CCTV1","http://148.135.93.213:81/live.php?id=CCTV1"),
+   # ("CCTV1","http://148.135.93.213:81/live.php?id=CCTV1"),
     ("大爱频道1","https://pulltv1.wanfudaluye.com/live/tv1.m3u8"),
-    ("CCTV13","http://148.135.93.213:81/live.php?id=CCTV13"),
+   # ("CCTV13","http://148.135.93.213:81/live.php?id=CCTV13"),
     ("西安综合","https://xatv-yt.xiancity.cn/live/1/index.m3u8"),
     ("西安都市","https://xatv-yt.xiancity.cn/live/2/index.m3u8"),
     ("西安商务资讯","https://xatv-yt.xiancity.cn/live/3/index.m3u8"),
