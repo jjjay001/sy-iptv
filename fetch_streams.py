@@ -18,21 +18,21 @@ driver = webdriver.Chrome(options=options)
 live_sources = []
 # 频道名称映射
 channel_ys = {
-    1: "新闻资讯",
-    2: "都市青春",
-    3: "银龄",
-    4: "秦腔",
-    5: "体育休闲",
-    7: "移动",
-    8: "陕西卫视"
+    1: "农林卫视",
+    2: "新闻资讯",
+    3: "都市青春",
+    4: "银龄",
+    5: "秦腔",
+    7: "体育休闲",
+    8: "移动"
 }
 
 # 添加的直播源
 additional_sources = [
 
-   # ("渭南综合","http://[2409:8087:7008:20::a]/dbiptv.sn.chinamobile.com/PLTV/88888888/224/3221226376/1.m3u8"),
+    ("CCTV1","http://148.135.93.213:81/live.php?id=CCTV1"),
     ("大爱频道1","https://pulltv1.wanfudaluye.com/live/tv1.m3u8"),
-  #  ("大爱频道2","https://pulltv2.wanfudaluye.com/live/tv2.m3u8"),
+    ("CCTV13","http://148.135.93.213:81/live.php?id=CCTV13"),
     ("西安综合","https://xatv-yt.xiancity.cn/live/1/index.m3u8"),
     ("西安都市","https://xatv-yt.xiancity.cn/live/2/index.m3u8"),
     ("西安商务资讯","https://xatv-yt.xiancity.cn/live/3/index.m3u8"),
@@ -101,7 +101,7 @@ try:
     # 获取默认直播源
     video_element = driver.find_element(By.ID, 'videoBox')
     default_live_url = video_element.get_attribute('src')
-    live_sources.append(("农林卫视", default_live_url))  # 使用默认频道名称
+    live_sources.append(("陕西卫视", default_live_url))  # 使用默认频道名称
     print(f"找到默认直播源: {default_live_url}")
 
     # 获取页面的尺寸信息
@@ -138,7 +138,7 @@ try:
 
             # 不将第五次和第八次的直播源加入到live_sources列表中
             if current_live_url != default_live_url:
-                if i not in [6]:  # 第6次不加入
+                if i not in [7]:  # 第7次不加入
                     live_sources.append((channel_id, current_live_url))
                 print(f"{channel_id}: 当前直播源: {current_live_url}")
                 default_live_url = current_live_url  # 更新默认直播源为当前直播源
@@ -162,7 +162,7 @@ with open('ShaanxiTV.m3u', 'w', encoding='utf-8') as f:
     f.write('#EXTM3U\n')
     
     for channel_id, source in live_sources:
-        channel_name = channel_ys.get(channel_id, "农林卫视")  # 获取频道名称
+        channel_name = channel_ys.get(channel_id, "陕西卫视")  # 获取频道名称
         # 写入频道信息，-1 表示持续时间未知
         f.write(f'#EXTINF:-1, {channel_name}\n')
         f.write(f'{source}\n')
