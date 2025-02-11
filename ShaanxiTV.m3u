@@ -31,18 +31,10 @@ https://xatv-yt.xiancity.cn/live/5/index.m3u8
 http://124.116.183.146:9901/tsfile/live/0001_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV2
 http://124.116.183.146:9901/tsfile/live/0002_1.m3u8?key=txiptv
-#EXTINF:-1, CCTV3
-http://124.116.183.146:9901/tsfile/live/0003_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV4
 http://124.116.183.146:9901/tsfile/live/0004_1.m3u8?key=txiptv
-#EXTINF:-1, CCTV5
-http://124.116.183.146:9901/tsfile/live/0005_1.m3u8?key=txiptv
-#EXTINF:-1, CCTV6
-http://124.116.183.146:9901/tsfile/live/0006_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV7
 http://124.116.183.146:9901/tsfile/live/0007_1.m3u8?key=txiptv
-#EXTINF:-1, CCTV8
-http://124.116.183.146:9901/tsfile/live/0008_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV9
 http://124.116.183.146:9901/tsfile/live/0009_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV10
