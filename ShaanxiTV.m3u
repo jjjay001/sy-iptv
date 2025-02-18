@@ -32,17 +32,17 @@ http://124.116.183.146:9901/tsfile/live/0001_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV2
 http://124.116.183.146:9901/tsfile/live/0002_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV3
-http://nn.7x9d.cn/组播/咪咕视频.php?id=cctv3
+http://lt.hxtre.com:35455/gaoma/cctv3.m3u8
 #EXTINF:-1, CCTV4
 http://124.116.183.146:9901/tsfile/live/0004_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV5
-http://nn.7x9d.cn/组播/咪咕视频.php?id=cctv5
+http://111.170.172.113:35455/gaoma/cctv5.m3u8
 #EXTINF:-1, CCTV6
-http://nn.7x9d.cn/组播/咪咕视频.php?id=cctv6
+http://13937899.xyz:35455/gaoma/cctv6.m3u8
 #EXTINF:-1, CCTV7
 http://124.116.183.146:9901/tsfile/live/0007_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV8
-http://nn.7x9d.cn/组播/咪咕视频.php?id=cctv8
+http://117.144.58.42:35455/gaoma/cctv8.m3u8
 #EXTINF:-1, CCTV9
 http://124.116.183.146:9901/tsfile/live/0009_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV10
