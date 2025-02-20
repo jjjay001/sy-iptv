@@ -36,13 +36,13 @@ http://lt.hxtre.com:35455/gaoma/cctv3.m3u8
 #EXTINF:-1, CCTV4
 http://124.116.183.146:9901/tsfile/live/0004_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV5
-http://111.170.172.113:35455/gaoma/cctv5.m3u8
+http://drive.mxmy.net:8888/udp/239.3.1.173:8001
 #EXTINF:-1, CCTV6
 http://drive.mxmy.net:8888/udp/239.3.1.174:8001
 #EXTINF:-1, CCTV7
 http://124.116.183.146:9901/tsfile/live/0007_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV8
-http://117.144.58.42:35455/gaoma/cctv8.m3u8
+http://drive.mxmy.net:8888/udp/239.3.1.175:8001
 #EXTINF:-1, CCTV9
 http://124.116.183.146:9901/tsfile/live/0009_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV10
