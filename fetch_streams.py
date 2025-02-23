@@ -38,7 +38,7 @@ additional_sources = [
     ("西安丝路","https://xatv-yt.xiancity.cn/live/5/index.m3u8"),
     ("CCTV1","http://124.116.183.146:9901/tsfile/live/0001_1.m3u8?key=txiptv"),
     ("CCTV2","http://124.116.183.146:9901/tsfile/live/0002_1.m3u8?key=txiptv"),
-    ("CCTV3","http://lt.hxtre.com:35455/gaoma/cctv3.m3u8"),
+    ("CCTV3","http://drive.mxmy.net:8888/udp/239.3.1.172:8001"),
     ("CCTV4","http://124.116.183.146:9901/tsfile/live/0004_1.m3u8?key=txiptv"),
     ("CCTV5","http://drive.mxmy.net:8888/udp/239.3.1.173:8001"),
     ("CCTV6","http://drive.mxmy.net:8888/udp/239.3.1.174:8001"),
