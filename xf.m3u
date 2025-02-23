@@ -1,7 +1,7 @@
 央视频道,#genre#
 CCTV1,http://124.116.183.146:9901/tsfile/live/0001_1.m3u8?key=txiptv
 CCTV2,http://124.116.183.146:9901/tsfile/live/0002_1.m3u8?key=txiptv
-CCTV3,http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226021/index.m3u8
+CCTV3,https://ldocctvwbcdcnc.v.wscdns.com/ldocctvwbcd/cdrmldcctv3_1_480P/playlist.m3u8?wsApp=HLS
 CCTV4,http://124.116.183.146:9901/tsfile/live/0004_1.m3u8?key=txiptv
 CCTV5,http://124.116.183.146:9901/tsfile/live/0005_1.m3u8?key=txiptv
 CCTV6,https://ldocctvwbcdks.v.kcdnvip.com/ldocctvwbcd/cdrmldcctv3_1/index.m3u8?navigator.userAgent=//cms.cntv.cn/CMS
