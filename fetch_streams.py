@@ -146,7 +146,7 @@ try:
             # 执行滑动操作
             action.move_by_offset(start_x, y_position).click_and_hold().move_by_offset(move, 0).release().perform()
 
-            time.sleep(3)  # 等待页面完全加载
+            time.sleep(5)  # 等待页面完全加载
 
             # 获取当前直播源
             video_element = WebDriverWait(driver, 10).until(
