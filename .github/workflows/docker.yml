@@ -1,19 +1,2 @@
-name: Run Docker container
+11
 
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  run-docker:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Build Docker image
-        run: docker run -d --restart always --privileged=true -p 35455:35455 --name allinone youshandefeiyang/allinone -tv=true -aesKey=syydruygnpei5l1qlpfb2jszn76snoy9 -userid=5341928469 -token=77df1ddb0fb9db4ffa9bbd105f3b720349a0b5e0ac28d1007d09f5f179609a9ce2fffbf4a9520df809ade3d3d1b336c7e06a12549d148cf4a432181a223635d390e6b32d9da26a
-
-      - name: Run Docker container
-        run: docker run my-image
