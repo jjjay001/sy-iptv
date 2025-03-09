@@ -32,17 +32,17 @@ http://124.116.183.146:9901/tsfile/live/0001_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV2
 http://124.116.183.146:9901/tsfile/live/0002_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV3
-http://drive.mxmy.net:8888/udp/239.3.1.172:8001
+http://iptv.huuc.edu.cn/hls/cctv3hd.m3u8
 #EXTINF:-1, CCTV4
 http://124.116.183.146:9901/tsfile/live/0004_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV5
-http://drive.mxmy.net:8888/udp/239.3.1.173:8001
+http://iptv.huuc.edu.cn/hls/cctv5hd.m3u8
 #EXTINF:-1, CCTV6
-http://drive.mxmy.net:8888/udp/239.3.1.174:8001
+http://iptv.huuc.edu.cn/hls/cctv6hd.m3u8
 #EXTINF:-1, CCTV7
 http://124.116.183.146:9901/tsfile/live/0007_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV8
-http://drive.mxmy.net:8888/udp/239.3.1.175:8001
+http://iptv.huuc.edu.cn/hls/cctv8hd.m3u8
 #EXTINF:-1, CCTV9
 http://124.116.183.146:9901/tsfile/live/0009_1.m3u8?key=txiptv
 #EXTINF:-1, CCTV10
