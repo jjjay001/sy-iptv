@@ -42,7 +42,7 @@ additional_sources = [
     ("CCTV4","http://124.116.183.146:9901/tsfile/live/0004_1.m3u8?key=txiptv"),
     ("CCTV5","http://iptv.huuc.edu.cn/hls/cctv5hd.m3u8"),
     ("CCTV6","http://iptv.huuc.edu.cn/hls/cctv6hd.m3u8"),
-    ("CCTV7","http://124.116.183.146:9901/tsfile/live/0007_1.m3u8?key=txiptv"),
+    ("CCTV7","http://iptv.huuc.edu.cn/hls/cctv7hd.m3u8"),
     ("CCTV8","http://iptv.huuc.edu.cn/hls/cctv8hd.m3u8"),
     ("CCTV9","http://124.116.183.146:9901/tsfile/live/0009_1.m3u8?key=txiptv"),
     ("CCTV10","http://124.116.183.146:9901/tsfile/live/0010_1.m3u8?key=txiptv"),
