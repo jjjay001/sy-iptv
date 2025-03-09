@@ -40,7 +40,7 @@ http://iptv.huuc.edu.cn/hls/cctv5hd.m3u8
 #EXTINF:-1, CCTV6
 http://iptv.huuc.edu.cn/hls/cctv6hd.m3u8
 #EXTINF:-1, CCTV7
-http://124.116.183.146:9901/tsfile/live/0007_1.m3u8?key=txiptv
+http://iptv.huuc.edu.cn/hls/cctv7hd.m3u8
 #EXTINF:-1, CCTV8
 http://iptv.huuc.edu.cn/hls/cctv8hd.m3u8
 #EXTINF:-1, CCTV9
