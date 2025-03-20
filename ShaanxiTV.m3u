@@ -1,18 +1,20 @@
 #EXTM3U
 #EXTINF:-1, 陕西卫视
 http://stream.snrtv.com/sxbc-star-clmrI6.m3u8
-#EXTINF:-1, 新闻资讯
+#EXTINF:-1, 农林卫视
 http://stream.snrtv.com/sxbc-nl-giPRZ9.m3u8
-#EXTINF:-1, 都市青春
+#EXTINF:-1, 新闻资讯
 http://stream.snrtv.com/sxbc-1-chyA57.m3u8
-#EXTINF:-1, 银龄
+#EXTINF:-1, 都市青春
 http://stream.snrtv.com/sxbc-2-tuxCL3.m3u8
-#EXTINF:-1, 秦腔
+#EXTINF:-1, 银龄
 http://stream.snrtv.com/sxbc-3-bqvA37.m3u8
-#EXTINF:-1, 体育休闲
+#EXTINF:-1, 秦腔
 http://stream.snrtv.com/sxbc-5-fBCI49.m3u8
+#EXTINF:-1, 体育休闲
+http://stream.snrtv.com/sxbc-7-ekxHO4.m3u8
 #EXTINF:-1, 移动
-http://tvplay.lejogo.com/sxtv6/cnwest.m3u8?auth_token=1909756800-20226157-2022618-ff6b71f2cbc1c9b95d91af67b1bac497
+http://stream.snrtv.com/sxbc-yd-boyLV4.m3u8
 #EXTINF:-1, 大爱频道1
 https://pulltv1.wanfudaluye.com/live/tv1.m3u8
 #EXTINF:-1, 西安综合
