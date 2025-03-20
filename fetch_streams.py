@@ -62,7 +62,7 @@ additional_sources = [
     ("湖北卫视","http://124.116.183.146:9901/tsfile/live/0132_1.m3u8?key=txiptv"),
     ("四川卫视","http://124.116.183.146:9901/tsfile/live/0123_1.m3u8?key=txiptv"),
     ("卡酷动画","http://124.116.183.146:9901/tsfile/live/0137_1.m3u8?key=txiptv"),
-   # ("香港卫视", "http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8"),
+   ## ("香港卫视", "http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8"),
    # ("龍華电影", "http://aktv.top/AKTV/live/aktv/null-23/AKTV.m3u8"),
    # ("翡翠台","http://aktv.top/AKTV/live/aktv/null/AKTV.m3u8"),
    # ("老高与小沫","https://www.goodiptv.club/douyu/236461"),
