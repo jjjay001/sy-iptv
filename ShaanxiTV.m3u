@@ -1,20 +1,18 @@
 #EXTM3U
 #EXTINF:-1, 陕西卫视
-http://stream.snrtv.com/sxbc-star-eityG7.m3u8
-#EXTINF:-1, 农林卫视
-http://stream.snrtv.com/sxbc-nl-cfFHKU.m3u8
+http://stream.snrtv.com/sxbc-star-intvBC.m3u8
 #EXTINF:-1, 新闻资讯
-http://stream.snrtv.com/sxbc-1-jxCTW7.m3u8
+http://stream.snrtv.com/sxbc-nl-fjJOUV.m3u8
 #EXTINF:-1, 都市青春
-http://stream.snrtv.com/sxbc-2-iDNX12.m3u8
+http://stream.snrtv.com/sxbc-1-drwBEU.m3u8
 #EXTINF:-1, 银龄
-http://stream.snrtv.com/sxbc-3-irxDOZ.m3u8
+http://stream.snrtv.com/sxbc-2-lBMTV0.m3u8
 #EXTINF:-1, 秦腔
-http://stream.snrtv.com/sxbc-5-hwDGTZ.m3u8
+http://stream.snrtv.com/sxbc-3-fkpwD8.m3u8
 #EXTINF:-1, 体育休闲
-http://stream.snrtv.com/sxbc-7-eijuzM.m3u8
+http://stream.snrtv.com/sxbc-5-dnvBDZ.m3u8
 #EXTINF:-1, 移动
-http://stream.snrtv.com/sxbc-yd-gFKOQ6.m3u8
+http://tvplay.lejogo.com/sxtv6/cnwest.m3u8?auth_token=1909756800-20226157-2022618-ff6b71f2cbc1c9b95d91af67b1bac497
 #EXTINF:-1, 西安综合
 https://xatv-yt.xiancity.cn/live/1/index.m3u8
 #EXTINF:-1, 西安都市
