@@ -72,7 +72,7 @@ additional_sources = [
   # ("group-title=\"影视轮播\",血色浪漫","https://lunbo.freetv.top/yy/1354926676"),
    # ("group-title=\"影视轮播\",福贵","https://lunbo.freetv.top/yy/1354926537"),
   #  ("group-title=\"影视轮播\",少年包青天","https://lunbo.freetv.top/yy/38498680"),
-#("group-title=\"影视轮播\",神探狄仁杰2","https://lunbo.freetv.top/yy/1382828767"),
+#123("group-title=\"影视轮播\",神探狄仁杰2","https://lunbo.freetv.top/yy/1382828767"),
 #("group-title=\"影视轮播\",举起手来-惊险抗日","https://lunbo.freetv.top/yy/1382736877"),("group-title=\"影视轮播\",举起手来-惊险抗日","https://lunbo.freetv.top/yy/1382736877"),
 #("group-title=\"影视轮播\",神探狄仁杰1","https://lunbo.freetv.top/yy/1354930934"),
 #("group-title=\"影视轮播\",笑傲江湖","https://lunbo.freetv.top/yy/1354930909"),
