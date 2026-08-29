@@ -125,78 +125,73 @@ try:
     # 切换频道
     # =========================
 
-    channel_count = 8
+channel_count = 8
 
-    for i in range(1, channel_count + 1):
+for i in range(1, channel_count + 1):
 
-        print(f"\n===== 滑动到频道 {i} =====")
+    print(f"===== 滑动到频道 {i} =====")
 
-        try:
+    try:
 
-            action = ActionChains(driver)
-
-            action.move_by_offset(
-                start_x,
-                y_position
-            ).click_and_hold().move_by_offset(
-                move_distance,
-                0
-            ).release().perform()
-
-            print("滑动完成")
-
-            # 给页面 JS 一点时间
-            time.sleep(3)
-
-            # 获取 videoBox
-            video_element = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located(
-                    (By.ID, 'videoBox')
-                )
+        # 每次重新获取 videoBox
+        video_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located(
+                (By.ID, 'videoBox')
             )
+        )
 
-            current_live_url = video_element.get_attribute('src')
+        # 重新创建 ActionChains
+        action = ActionChains(driver)
 
-            channel_id = i
+        # 以 videoBox 为起点进行横向拖动
+        action.move_to_element(video_element)
+        action.click_and_hold()
+        action.move_by_offset(-100, 0)
+        action.release()
+        action.perform()
 
-            if current_live_url and current_live_url != default_live_url:
+        print("滑动完成")
 
-                if i not in [7]:
+        time.sleep(3)
 
-                    live_sources.append(
-                        (channel_id, current_live_url)
-                    )
+        # 等待 videoBox
+        video_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located(
+                (By.ID, 'videoBox')
+            )
+        )
 
-                print(
-                    f"{channel_id}: 当前直播源: "
-                    f"{current_live_url}"
+        current_live_url = video_element.get_attribute('src')
+
+        print(f"当前 URL: {current_live_url}")
+
+        if current_live_url and current_live_url != default_live_url:
+
+            if i not in [7]:
+                live_sources.append(
+                    (i, current_live_url)
                 )
 
-                default_live_url = current_live_url
+            print(f"{i}: 当前直播源: {current_live_url}")
 
-            else:
+            default_live_url = current_live_url
 
-                print(
-                    f"{channel_id}: "
-                    "未检测到新直播源"
-                )
-
-        except Exception as e:
+        else:
 
             print(
-                f"频道 {i} 滑动失败: "
-                f"{type(e).__name__}: {e}"
+                f"{i}: 未检测到新直播源"
             )
 
-        time.sleep(1)
+    except Exception as e:
+
+        print(
+            f"频道 {i} 滑动失败: "
+            f"{type(e).__name__}: {e}"
+        )
+
+    time.sleep(1)
 
 
-except Exception as e:
-
-    print(
-        f"发生错误: "
-        f"{type(e).__name__}: {e}"
-    )
 
 
 finally:
