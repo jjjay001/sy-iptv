@@ -6,6 +6,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import time
 
+
 # =========================
 # Chrome 配置
 # =========================
@@ -26,7 +27,6 @@ print("正在启动 Chrome...")
 try:
     driver = webdriver.Chrome(options=options)
 
-    # 非常重要：限制 Selenium 自己的超时时间
     driver.set_page_load_timeout(30)
     driver.set_script_timeout(30)
 
@@ -77,121 +77,154 @@ try:
         print("网页请求完成")
 
     except TimeoutException:
-        # 页面里面的视频资源可能一直加载
-        # 但是 DOM 通常已经可以使用
         print("网页加载超过30秒，继续执行")
 
+    # =========================
     # 等待 videoBox
+    # =========================
+
     print("等待 videoBox...")
 
-    try:
-        video_element = WebDriverWait(driver, 15).until(
-            EC.presence_of_element_located((By.ID, 'videoBox'))
+    video_element = WebDriverWait(driver, 15).until(
+        EC.presence_of_element_located(
+            (By.ID, 'videoBox')
         )
+    )
 
-        print("videoBox 找到")
+    print("videoBox 找到")
 
-    except TimeoutException:
-        print("15秒内没有找到 videoBox")
-        raise
-
+    # 获取默认直播源
     default_live_url = video_element.get_attribute('src')
 
     if default_live_url:
-        live_sources.append(("陕西卫视", default_live_url))
-        print(f"找到默认直播源: {default_live_url}")
+
+        live_sources.append(
+            ("陕西卫视", default_live_url)
+        )
+
+        print(
+            f"找到默认直播源: "
+            f"{default_live_url}"
+        )
+
     else:
         print("videoBox 存在，但是没有获取到 src")
-
-
-    # =========================
-    # 获取窗口尺寸
-    # =========================
-
-    window_size = driver.execute_script(
-        "return { width: window.innerWidth, height: window.innerHeight };"
-    )
-
-    screen_width = window_size['width']
-    screen_height = window_size['height']
-
-    start_x = screen_width * 3 / 4
-    y_position = screen_height / 3
-
-    move_distance = -100
 
 
     # =========================
     # 切换频道
     # =========================
 
-channel_count = 8
+    channel_count = 8
 
-for i in range(1, channel_count + 1):
+    for i in range(1, channel_count + 1):
 
-    print(f"===== 滑动到频道 {i} =====")
+        print(f"===== 滑动到频道 {i} =====")
 
-    try:
+        try:
 
-        # 每次重新获取 videoBox
-        video_element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located(
-                (By.ID, 'videoBox')
-            )
-        )
-
-        # 重新创建 ActionChains
-        action = ActionChains(driver)
-
-        # 以 videoBox 为起点进行横向拖动
-        action.move_to_element(video_element)
-        action.click_and_hold()
-        action.move_by_offset(-100, 0)
-        action.release()
-        action.perform()
-
-        print("滑动完成")
-
-        time.sleep(3)
-
-        # 等待 videoBox
-        video_element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located(
-                (By.ID, 'videoBox')
-            )
-        )
-
-        current_live_url = video_element.get_attribute('src')
-
-        print(f"当前 URL: {current_live_url}")
-
-        if current_live_url and current_live_url != default_live_url:
-
-            if i not in [7]:
-                live_sources.append(
-                    (i, current_live_url)
+            # 每次重新获取 videoBox
+            video_element = WebDriverWait(
+                driver,
+                10
+            ).until(
+                EC.presence_of_element_located(
+                    (By.ID, 'videoBox')
                 )
+            )
 
-            print(f"{i}: 当前直播源: {current_live_url}")
+            # 每次重新创建 ActionChains
+            action = ActionChains(driver)
 
-            default_live_url = current_live_url
+            # 以 videoBox 为起点
+            # 避免 move_by_offset 累积导致越界
+            action.move_to_element(video_element)
 
-        else:
+            action.click_and_hold()
+
+            action.move_by_offset(
+                -100,
+                0
+            )
+
+            action.release()
+
+            action.perform()
+
+            print("滑动完成")
+
+            # 等待频道切换
+            time.sleep(3)
+
+            # 重新获取 videoBox
+            video_element = WebDriverWait(
+                driver,
+                10
+            ).until(
+                EC.presence_of_element_located(
+                    (By.ID, 'videoBox')
+                )
+            )
+
+            current_live_url = (
+                video_element.get_attribute('src')
+            )
 
             print(
-                f"{i}: 未检测到新直播源"
+                f"当前 URL: "
+                f"{current_live_url}"
             )
 
-    except Exception as e:
+            # =========================
+            # 判断直播源是否发生变化
+            # =========================
 
-        print(
-            f"频道 {i} 滑动失败: "
-            f"{type(e).__name__}: {e}"
-        )
+            if (
+                current_live_url
+                and current_live_url != default_live_url
+            ):
 
-    time.sleep(1)
+                # 第7次不加入
+                if i not in [7]:
+
+                    live_sources.append(
+                        (
+                            i,
+                            current_live_url
+                        )
+                    )
+
+                print(
+                    f"{i}: 当前直播源: "
+                    f"{current_live_url}"
+                )
+
+                # 更新当前直播源
+                default_live_url = current_live_url
+
+            else:
+
+                print(
+                    f"{i}: "
+                    "未检测到新直播源"
+                )
+
+        except Exception as e:
+
+            print(
+                f"频道 {i} 滑动失败: "
+                f"{type(e).__name__}: {e}"
+            )
+
+        time.sleep(1)
 
 
+except Exception as e:
+
+    print(
+        f"发生错误: "
+        f"{type(e).__name__}: {e}"
+    )
 
 
 finally:
@@ -200,8 +233,13 @@ finally:
 
     try:
         driver.quit()
+
     except Exception as e:
-        print(f"关闭 Chrome 时发生错误: {e}")
+
+        print(
+            f"关闭 Chrome 时发生错误: "
+            f"{e}"
+        )
 
 
 # =========================
