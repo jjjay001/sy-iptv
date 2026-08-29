@@ -3,20 +3,46 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 import time
 
-# 设置Selenium的Chrome选项
+# =========================
+# Chrome 配置
+# =========================
+
 options = webdriver.ChromeOptions()
-options.add_argument('--headless')  # 无头模式
+
+options.add_argument('--headless=new')
 options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
+options.add_argument('--disable-gpu')
+options.add_argument('--window-size=1920,1080')
+options.add_argument('--disable-extensions')
+options.add_argument('--disable-background-networking')
+options.add_argument('--disable-software-rasterizer')
 
-# 启动Chrome浏览器
-driver = webdriver.Chrome(options=options)
+print("正在启动 Chrome...")
 
-# 直播源URL列表
+try:
+    driver = webdriver.Chrome(options=options)
+
+    # 非常重要：限制 Selenium 自己的超时时间
+    driver.set_page_load_timeout(30)
+    driver.set_script_timeout(30)
+
+    print("Chrome 启动成功")
+
+except Exception as e:
+    print(f"Chrome 启动失败: {type(e).__name__}: {e}")
+    raise
+
+
+# =========================
+# 直播源
+# =========================
+
 live_sources = []
-# 频道名称映射
+
 channel_ys = {
     1: "农林卫视",
     2: "新闻资讯",
@@ -27,171 +53,200 @@ channel_ys = {
     8: "移动"
 }
 
-# 添加的直播源
 additional_sources = [
-
-   # ("大爱频道1","https://pulltv1.wanfudaluye.com/live/tv1.m3u8"),
-    ("西安综合","https://xatv-yt.xiancity.cn/live/1/index.m3u8"),
-    ("西安都市","https://xatv-yt.xiancity.cn/live/2/index.m3u8"),
-    ("西安商务资讯","https://xatv-yt.xiancity.cn/live/3/index.m3u8"),
-    ("西安影视","https://xatv-yt.xiancity.cn/live/4/index.m3u8"),
-    ("西安丝路","https://xatv-yt.xiancity.cn/live/5/index.m3u8"),
-  #  ("CCTV1","http://124.116.183.146:9901/tsfile/live/0001_1.m3u8?key=txiptv"),
- # ("CCTV2","http://124.116.183.146:9901/tsfile/live/0002_1.m3u8?key=txiptv"),
- #   ("CCTV3","http://iptv.huuc.edu.cn/hls/cctv3hd.m3u8"),
-  #  ("CCTV4","http://124.116.183.146:9901/tsfile/live/0004_1.m3u8?key=txiptv"),
-  #  ("CCTV5","http://iptv.huuc.edu.cn/hls/cctv5hd.m3u8"),
-   # ("CCTV61","http://iptv.huuc.edu.cn/hls/cctv6hd.m3u8"),
-   # ("CCTV7","http://iptv.huuc.edu.cn/hls/cctv7hd.m3u8"),
-  #  ("CCTV8","http://iptv.huuc.edu.cn/hls/cctv8hd.m3u8"),
-    #("CCTV9","http://124.116.183.146:9901/tsfile/live/0009_1.m3u8?key=txiptv"),
-   # ("CCTV10","http://124.116.183.146:9901/tsfile/live/0010_1.m3u8?key=txiptv"),
-   # ("CCTV11","http://124.116.183.146:9901/tsfile/live/0011_1.m3u8?key=txiptv"),
-   # ("CCTV12","http://124.116.183.146:9901/tsfile/live/0012_1.m3u8?key=txiptv"),
-    #("CCTV13","http://124.116.183.146:9901/tsfile/live/0013_1.m3u8?key=txiptv"),
-    #("CCTV14","http://124.116.183.146:9901/tsfile/live/0014_1.m3u8?key=txiptv"),
-    #("CCTV15","http://124.116.183.146:9901/tsfile/live/0015_1.m3u8?key=txiptv"),
-    #("湖南卫视","http://124.116.183.146:9901/tsfile/live/0128_1.m3u8?key=txiptv"),
-   # ("江苏卫视","http://124.116.183.146:9901/tsfile/live/0127_1.m3u8?key=txiptv"),
-   # ("东方卫视","http://124.116.183.146:9901/tsfile/live/0107_1.m3u8?key=txiptv"),
-   # ("安徽卫视","http://124.116.183.146:9901/tsfile/live/0130_1.m3u8?key=txiptv"),
-   # ("山东卫视","http://124.116.183.146:9901/tsfile/live/0131_1.m3u8?key=txiptv"),
-   # ("天津卫视","http://124.116.183.146:9901/tsfile/live/0135_1.m3u8?key=txiptv"),
-   # ("重庆卫视","http://124.116.183.146:9901/tsfile/live/0142_1.m3u8?key=txiptv"),
-   # ("黑龙江卫视","http://124.116.183.146:9901/tsfile/live/0143_1.m3u8?key=txiptv"),
-   # ("湖北卫视","http://124.116.183.146:9901/tsfile/live/0132_1.m3u8?key=txiptv"),
-  #  ("四川卫视","http://124.116.183.146:9901/tsfile/live/0123_1.m3u8?key=txiptv"),
-   #/ ("卡酷动画","http://124.116.183.146:9901/tsfile/live/0137_1.m3u8?key=txiptv"),##
-   #，111112 ("香港卫视", "http://zhibo.hkstv.tv/livestream/mutfysrq/playlist.m3u8"),
-  #  ("龍華电影", "http://aktv_stream1.m16tv.cfd/stream/taiwan/null-8/AKTV.m3u8"), 
-   # ("凤凰中文","http://aktv_stream1.m16tv.cfd/stream/aktv/null-3/AKTV.m3u8")
-   # ("老高与小沫","https://www.goodiptv.club/douyu/236461"),
-   # ( ("group-title=\"影视轮播\",济公","https://lunbo.freetv.top/yy/1355265814"),
-  # ("group-title=\"影视轮播\",宰相刘罗锅","https://lunbo.freetv.top/yy/1382745191"),
-    # 111，x x'  ("group-title=\"影视轮播\",血色浪漫","https://lunbo.freetv.top/yy/1354926676"),
-  # ("group-title=\"影视轮播\",血色浪漫","https://lunbo.freetv.top/yy/1354926676"),
-   # ("group-title=\"影视轮播\",福贵","https://lunbo.freetv.top/yy/1354926537"),
-  #  ("group-title=\"影视轮播\",少年包青天","https://lunbo.freetv.top/yy/38498680"),
-#123("group-title=\"影视轮播\",神探狄仁杰2","https://lunbo.freetv.top/yy/1382828767"),
-#("group-title=\"影视轮播\",举起手来-惊险抗日","https://lunbo.freetv.top/yy/1382736877"),("group-title=\"影视轮播\",举起手来-惊险抗日","https://lunbo.freetv.top/yy/1382736877"),
-#("group-title=\"影视轮播\",神探狄仁杰1","https://lunbo.freetv.top/yy/1354930934"),
-#("group-title=\"影视轮播\",笑傲江湖","https://lunbo.freetv.top/yy/1354930909"),
-#("group-title=\"影视轮播\",康熙王朝","https://lunbo.freetv.top/yy/1382736818"),
-#("group-title=\"影视轮播\",西游记后传","https://lunbo.freetv.top/yy/1382736846"),
-#("group-title=\"影视轮播\",西游记张卫健版","https://lunbo.freetv.top/yy/1354936155"),
-#("group-title=\"影视轮播\",寻秦记-穿越剧经典","https://lunbo.freetv.top/yy/1382749900"),
-#("group-title=\"影视轮播\",天道-9.2高分好剧","https://lunbo.freetv.top/yy/1382735574"),
-#("group-title=\"影视轮播\",父母爱情","https://lunbo.freetv.top/yy/1354926650"),
-#("group-title=\"影视轮播\",三国演义94年经典版","https://lunbo.freetv.top/yy/1354936241"),
-#("group-title=\"影视轮播\",少年包青天第三部","https://lunbo.freetv.top/yy/1382736814"),
-#("group-title=\"影视轮播\",我爱我家","https://lunbo.freetv.top/yy/1382735557"),
-#("group-title=\"影视轮播\",易中天品三国","https://lunbo.freetv.top/yy/1354931498"),
-#("group-title=\"影视轮播\",炊事班的故事II","https://lunbo.freetv.top/yy/1382736885"),
-#("group-title=\"影视轮播\",士兵突击","https://lunbo.freetv.top/yy/1382828766"),
-#("group-title=\"影视轮播\",法证先锋Ⅱ","https://lunbo.freetv.top/yy/1354888736"),
-#("group-title=\"影视轮播\",情满四合院","https://lunbo.freetv.top/yy/1382736848"),
-#("group-title=\"影视轮播\",魔幻手机","https://lunbo.freetv.top/yy/1382735544"),
-#("group-title=\"影视轮播\",伪装者","https://lunbo.freetv.top/yy/1354936244"),
-#("group-title=\"影视轮播\",大明王朝","https://lunbo.freetv.top/yy/1382736879"),
-#("group-title=\"影视轮播\",炊事班的故事","https://lunbo.freetv.top/yy/1382749901"),
-#("group-title=\"影视轮播\",金婚","https://lunbo.freetv.top/yy/1382736832"),
-#("group-title=\"影视轮播\",无敌县令","https://lunbo.freetv.top/yy/1354932390"),
-#("group-title=\"影视轮播\",黑冰","https://lunbo.freetv.top/yy/1354932427"),
-#("group-title=\"影视轮播\",大汉天子S1","https://lunbo.freetv.top/yy/1382749902"),
-#("group-title=\"影视轮播\",大汉天子S2","https://lunbo.freetv.top/yy/1382736807"),
-#("group-title=\"影视轮播\",大汉天子S3","https://lunbo.freetv.top/yy/1382736810"),
-#("group-title=\"影视轮播\",天下第一","https://lunbo.freetv.top/yy/1382736838"),
-#("group-title=\"影视轮播\",百家讲坛――之明太祖朱元璋","https://lunbo.freetv.top/yy/1354936149"),
-#("group-title=\"影视轮播\",忠烈杨家将","https://lunbo.freetv.top/yy/1382749909"),
-#("group-title=\"影视轮播\",仙剑奇侠传","https://lunbo.freetv.top/yy/1382749903"),
-#("group-title=\"影视轮播\",大时代"12,"https://lunbo.freetv.top/yy/1354930891"),
-#("group-title=\"影视轮播\",聊斋志异S1","https://lunbo.freetv.top/yy/1382736975"),
-#("group-title=\"影视轮播\",法证先锋Ⅲ","https://lunbo.freetv.top/yy/1382736802"),
-#("group-title=\"影视轮播\",大汉贤后卫子夫","https://lunbo.freetv.top/yy/1382735569"
+    ("西安综合", "https://xatv-yt.xiancity.cn/live/1/index.m3u8"),
+    ("西安都市", "https://xatv-yt.xiancity.cn/live/2/index.m3u8"),
+    ("西安商务资讯", "https://xatv-yt.xiancity.cn/live/3/index.m3u8"),
+    ("西安影视", "https://xatv-yt.xiancity.cn/live/4/index.m3u8"),
+    ("西安丝路", "https://xatv-yt.xiancity.cn/live/5/index.m3u8"),
 ]
 
-try:
-    # 打开目标网页
-    url = "http://m.snrtv.com/snrtv_tv/index.html"  # 替换为实际的直播页面URL
-    driver.get(url)
 
-    # 等待页面完全加载
-    WebDriverWait(driver, 5).until(
-        EC.presence_of_element_located((By.ID, 'videoBox'))  # 确保视频盒子加载完毕
+# =========================
+# 获取陕西卫视直播源
+# =========================
+
+try:
+
+    url = "http://m.snrtv.com/snrtv_tv/index.html"
+
+    print(f"正在打开网页: {url}")
+
+    try:
+        driver.get(url)
+        print("网页请求完成")
+
+    except TimeoutException:
+        # 页面里面的视频资源可能一直加载
+        # 但是 DOM 通常已经可以使用
+        print("网页加载超过30秒，继续执行")
+
+    # 等待 videoBox
+    print("等待 videoBox...")
+
+    try:
+        video_element = WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.ID, 'videoBox'))
+        )
+
+        print("videoBox 找到")
+
+    except TimeoutException:
+        print("15秒内没有找到 videoBox")
+        raise
+
+    default_live_url = video_element.get_attribute('src')
+
+    if default_live_url:
+        live_sources.append(("陕西卫视", default_live_url))
+        print(f"找到默认直播源: {default_live_url}")
+    else:
+        print("videoBox 存在，但是没有获取到 src")
+
+
+    # =========================
+    # 获取窗口尺寸
+    # =========================
+
+    window_size = driver.execute_script(
+        "return { width: window.innerWidth, height: window.innerHeight };"
     )
 
-    # 获取默认直播源
-    video_element = driver.find_element(By.ID, 'videoBox')
-    default_live_url = video_element.get_attribute('src')
-    live_sources.append(("陕西卫视", default_live_url))  # 使用默认频道名称
-    print(f"找到默认直播源: {default_live_url}")
-
-    # 获取页面的尺寸信息
-    window_size = driver.execute_script("return { width: window.innerWidth, height: window.innerHeight };")
     screen_width = window_size['width']
     screen_height = window_size['height']
 
-    # 每次滑动的起点和纵向位置
-    start_x = screen_width * 3 / 4  # 从屏幕中间靠右 1/4 处开始
-    y_position = screen_height / 3  # 纵向位置位于屏幕上三分之一
-    move_distance = -100  # 设置每次滑动的距离
+    start_x = screen_width * 3 / 4
+    y_position = screen_height / 3
 
-    # 通过鼠标拖动事件滑动切换频道
-    action = ActionChains(driver)
+    move_distance = -100
 
-    channel_count = 8  # 假设有8个频道
+
+    # =========================
+    # 切换频道
+    # =========================
+
+    channel_count = 8
+
     for i in range(1, channel_count + 1):
-        move = move_distance  
-        print(f"滑动到频道 {i}")
+
+        print(f"\n===== 滑动到频道 {i} =====")
+
         try:
-            # 执行滑动操作
-            action.move_by_offset(start_x, y_position).click_and_hold().move_by_offset(move, 0).release().perform()
 
-            time.sleep(5)  # 等待页面完全加载
+            action = ActionChains(driver)
 
-            # 获取当前直播源
+            action.move_by_offset(
+                start_x,
+                y_position
+            ).click_and_hold().move_by_offset(
+                move_distance,
+                0
+            ).release().perform()
+
+            print("滑动完成")
+
+            # 给页面 JS 一点时间
+            time.sleep(3)
+
+            # 获取 videoBox
             video_element = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.ID, 'videoBox'))
+                EC.presence_of_element_located(
+                    (By.ID, 'videoBox')
+                )
             )
+
             current_live_url = video_element.get_attribute('src')
 
-            # 获取频道 ID
-            channel_id = i  # 使用整数作为频道 ID
+            channel_id = i
 
-            # 不将第五次和第八次的直播源加入到live_sources列表中
-            if current_live_url != default_live_url:
-                if i not in [7]:  # 第7次不加入
-                    live_sources.append((channel_id, current_live_url))
-                print(f"{channel_id}: 当前直播源: {current_live_url}")
-                default_live_url = current_live_url  # 更新默认直播源为当前直播源
+            if current_live_url and current_live_url != default_live_url:
+
+                if i not in [7]:
+
+                    live_sources.append(
+                        (channel_id, current_live_url)
+                    )
+
+                print(
+                    f"{channel_id}: 当前直播源: "
+                    f"{current_live_url}"
+                )
+
+                default_live_url = current_live_url
+
             else:
-                print(f"{channel_id}: 未检测到新直播源，当前仍为默认频道")
+
+                print(
+                    f"{channel_id}: "
+                    "未检测到新直播源"
+                )
 
         except Exception as e:
-            print(f"滑动操作失败: {e}")
 
-        # 在每次滑动后，重置ActionChains以防止链条问题
-        action.reset_actions()
+            print(
+                f"频道 {i} 滑动失败: "
+                f"{type(e).__name__}: {e}"
+            )
+
+        time.sleep(1)
+
 
 except Exception as e:
-    print(f"发生错误: {e}")
+
+    print(
+        f"发生错误: "
+        f"{type(e).__name__}: {e}"
+    )
+
+
 finally:
-    # 关闭浏览器
-    driver.quit()
 
-# 生成 .m3u 文件
-with open('ShaanxiTV.m3u', 'w', encoding='utf-8') as f:
+    print("正在关闭 Chrome...")
+
+    try:
+        driver.quit()
+    except Exception as e:
+        print(f"关闭 Chrome 时发生错误: {e}")
+
+
+# =========================
+# 生成 M3U
+# =========================
+
+with open(
+    'ShaanxiTV.m3u',
+    'w',
+    encoding='utf-8'
+) as f:
+
     f.write('#EXTM3U\n')
-    
+
+    # 陕西广电频道
     for channel_id, source in live_sources:
-        channel_name = channel_ys.get(channel_id, "陕西卫视")  # 获取频道名称
-        # 写入频道信息，-1 表示持续时间未知
-        f.write(f'#EXTINF:-1, {channel_name}\n')
-        f.write(f'{source}\n')
 
-# 后写入额外的直播源
+        channel_name = channel_ys.get(
+            channel_id,
+            "陕西卫视"
+        )
+
+        f.write(
+            f'#EXTINF:-1, {channel_name}\n'
+        )
+
+        f.write(
+            f'{source}\n'
+        )
+
+    # 西安电视台等额外源
     for channel_name, source in additional_sources:
-        f.write(f'#EXTINF:-1, {channel_name}\n')
-        f.write(f'{source}\n')
 
-print("已生成 ShaanxiTV.m3u 文件")
+        f.write(
+            f'#EXTINF:-1, {channel_name}\n'
+        )
+
+        f.write(
+            f'{source}\n'
+        )
+
+
+print("\n已生成 ShaanxiTV.m3u 文件")
