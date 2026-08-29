@@ -17,29 +17,35 @@ options.add_argument('--headless=new')
 options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
 options.add_argument('--disable-gpu')
-options.add_argument('--window-size=1920,1080')
+
+# 页面本身是移动端 640px 宽
+# 不要再使用 1920x1080
+options.add_argument('--window-size=640,1000')
+
 options.add_argument('--disable-extensions')
 options.add_argument('--disable-background-networking')
-options.add_argument('--disable-software-rasterizer')
 
 print("正在启动 Chrome...")
 
 try:
+
     driver = webdriver.Chrome(options=options)
 
-    # 页面加载最多等待 30 秒
     driver.set_page_load_timeout(30)
-
-    # JS 最多等待 30 秒
     driver.set_script_timeout(30)
+
+    # 再强制设置一次窗口尺寸
+    driver.set_window_size(640, 1000)
 
     print("Chrome 启动成功")
 
 except Exception as e:
+
     print(
         f"Chrome 启动失败: "
         f"{type(e).__name__}: {e}"
     )
+
     raise
 
 
@@ -50,7 +56,10 @@ except Exception as e:
 live_sources = []
 
 
+# ============================================================
 # 陕西频道名称
+# ============================================================
+
 channel_ys = {
     1: "农林卫视",
     2: "新闻资讯",
@@ -97,68 +106,190 @@ additional_sources = [
 
 
 # ============================================================
-# 打印 videoBox 父级结构
+# 获取当前直播 URL
 # ============================================================
 
-def print_page_structure():
-
-    print("")
-    print("========== videoBox 页面结构 ==========")
+def get_video_url():
 
     try:
 
-        structure = driver.execute_script("""
-            const video = document.getElementById('videoBox');
+        video = driver.find_element(
+            By.ID,
+            "videoBox"
+        )
 
-            if (!video) {
-                return 'videoBox 不存在';
-            }
+        return video.get_attribute("src")
 
-            let result = [];
-            let el = video;
+    except Exception:
 
-            for (let i = 0; i < 8 && el; i++) {
+        return None
 
-                result.push({
-                    tag: el.tagName,
-                    id: el.id || '',
-                    className: typeof el.className === 'string'
-                        ? el.className
-                        : '',
-                    width: el.offsetWidth,
-                    height: el.offsetHeight,
-                    outerHTML: el.outerHTML.substring(0, 300)
-                });
 
-                el = el.parentElement;
-            }
+# ============================================================
+# 获取 Swiper 信息
+# ============================================================
 
-            return JSON.stringify(result, null, 2);
-        """)
+def print_swiper_info():
 
-        print(structure)
+    print("")
+    print("========== programSwiper 信息 ==========")
+
+    try:
+
+        swiper = driver.find_element(
+            By.ID,
+            "programSwiper"
+        )
+
+        info = driver.execute_script(
+            """
+            const el = arguments[0];
+
+            const rect = el.getBoundingClientRect();
+
+            const wrapper =
+                el.querySelector('.swiper-wrapper');
+
+            const slides =
+                el.querySelectorAll('.swiper-slide');
+
+            return {
+                rect: {
+                    x: rect.x,
+                    y: rect.y,
+                    width: rect.width,
+                    height: rect.height
+                },
+
+                scrollWidth: el.scrollWidth,
+                scrollHeight: el.scrollHeight,
+
+                slideCount: slides.length,
+
+                wrapperHTML:
+                    wrapper
+                    ? wrapper.outerHTML.substring(0, 3000)
+                    : null
+            };
+            """,
+            swiper
+        )
+
+        print(info)
 
     except Exception as e:
 
         print(
-            f"获取页面结构失败: "
+            f"获取 Swiper 信息失败: "
             f"{type(e).__name__}: {e}"
         )
 
-    print("========== 页面结构结束 ==========")
+    print("========== programSwiper 信息结束 ==========")
     print("")
 
 
 # ============================================================
-# 获取直播源
+# 滑动 Swiper
+# ============================================================
+
+def swipe_swiper(distance=-250):
+
+    swiper = WebDriverWait(
+        driver,
+        10
+    ).until(
+        EC.presence_of_element_located(
+            (By.ID, "programSwiper")
+        )
+    )
+
+    # --------------------------------------------------------
+    # 获取元素位置
+    # --------------------------------------------------------
+
+    rect = driver.execute_script(
+        """
+        const r = arguments[0].getBoundingClientRect();
+
+        return {
+            x: r.x,
+            y: r.y,
+            width: r.width,
+            height: r.height
+        };
+        """,
+        swiper
+    )
+
+    print(
+        "Swiper位置: "
+        f"x={rect['x']}, "
+        f"y={rect['y']}, "
+        f"width={rect['width']}, "
+        f"height={rect['height']}"
+    )
+
+
+    # --------------------------------------------------------
+    # 确保 Swiper 在可视区域
+    # --------------------------------------------------------
+
+    driver.execute_script(
+        """
+        arguments[0].scrollIntoView({
+            block: 'center',
+            inline: 'center'
+        });
+        """,
+        swiper
+    )
+
+    time.sleep(0.5)
+
+
+    # --------------------------------------------------------
+    # 使用 Swiper 元素作为滑动对象
+    # --------------------------------------------------------
+
+    action = ActionChains(driver)
+
+    action.move_to_element(swiper)
+
+    action.click_and_hold()
+
+    action.pause(0.3)
+
+    action.move_by_offset(
+        distance,
+        0
+    )
+
+    action.pause(0.3)
+
+    action.release()
+
+    action.perform()
+
+    print(
+        f"Swiper 滑动完成，距离: {distance}"
+    )
+
+
+# ============================================================
+# 主程序
 # ============================================================
 
 try:
 
-    url = "http://m.snrtv.com/snrtv_tv/index.html"
+    url = (
+        "http://m.snrtv.com/"
+        "snrtv_tv/index.html"
+    )
 
     print("")
-    print(f"正在打开网页: {url}")
+    print(
+        f"正在打开网页: {url}"
+    )
 
     # --------------------------------------------------------
     # 打开网页
@@ -172,18 +303,8 @@ try:
 
     except TimeoutException:
 
-        # 页面里的视频资源可能一直加载
-        # 但 DOM 已经可能加载完成
         print(
-            "网页加载超过30秒，"
-            "继续执行"
-        )
-
-    except Exception as e:
-
-        print(
-            f"打开网页发生异常: "
-            f"{type(e).__name__}: {e}"
+            "网页加载超过30秒，继续执行"
         )
 
 
@@ -191,49 +312,37 @@ try:
     # 等待 videoBox
     # --------------------------------------------------------
 
-    print("等待 videoBox...")
+    print(
+        "等待 videoBox..."
+    )
 
-    try:
-
-        video_element = WebDriverWait(
-            driver,
-            15
-        ).until(
-            EC.presence_of_element_located(
-                (By.ID, 'videoBox')
-            )
+    video_element = WebDriverWait(
+        driver,
+        15
+    ).until(
+        EC.presence_of_element_located(
+            (By.ID, "videoBox")
         )
+    )
 
-        print("videoBox 找到")
-
-    except TimeoutException:
-
-        print(
-            "15秒内没有找到 videoBox"
-        )
-
-        # 输出页面 HTML 方便排查
-        try:
-
-            print(
-                driver.execute_script(
-                    "return document.body.innerHTML.substring(0, 5000);"
-                )
-            )
-
-        except Exception:
-            pass
-
-        raise
+    print(
+        "videoBox 找到"
+    )
 
 
     # --------------------------------------------------------
-    # 获取默认直播源
+    # 默认直播源
     # --------------------------------------------------------
 
     default_live_url = (
-        video_element.get_attribute('src')
+        video_element.get_attribute("src")
     )
+
+    print(
+        f"找到默认直播源: "
+        f"{default_live_url}"
+    )
+
 
     if default_live_url:
 
@@ -244,91 +353,64 @@ try:
             )
         )
 
-        print(
-            f"找到默认直播源: "
-            f"{default_live_url}"
-        )
 
-    else:
+    # --------------------------------------------------------
+    # 等待 programSwiper
+    # --------------------------------------------------------
 
-        print(
-            "videoBox 存在，"
-            "但是没有获取到 src"
+    print(
+        "等待 programSwiper..."
+    )
+
+    swiper = WebDriverWait(
+        driver,
+        15
+    ).until(
+        EC.presence_of_element_located(
+            (By.ID, "programSwiper")
         )
+    )
+
+    print(
+        "programSwiper 找到"
+    )
 
 
     # --------------------------------------------------------
-    # 打印页面结构
+    # 等待 Swiper 内部 slide
     # --------------------------------------------------------
-
-    print_page_structure()
-
-
-    # ========================================================
-    # 获取浏览器窗口尺寸
-    # ========================================================
 
     try:
 
-        window_size = driver.execute_script("""
-            return {
-                width: window.innerWidth,
-                height: window.innerHeight
-            };
-        """)
-
-        screen_width = window_size["width"]
-        screen_height = window_size["height"]
-
-        print(
-            f"浏览器窗口尺寸: "
-            f"{screen_width} x {screen_height}"
+        WebDriverWait(
+            driver,
+            10
+        ).until(
+            lambda d:
+            len(
+                d.find_elements(
+                    By.CSS_SELECTOR,
+                    "#programSwiper .swiper-slide"
+                )
+            ) > 0
         )
 
-    except Exception as e:
+    except TimeoutException:
 
         print(
-            f"获取窗口尺寸失败: {e}"
+            "没有检测到 swiper-slide"
         )
 
-        # 默认值
-        screen_width = 1920
-        screen_height = 1080
+
+    # --------------------------------------------------------
+    # 打印 Swiper 信息
+    # --------------------------------------------------------
+
+    print_swiper_info()
 
 
     # ========================================================
-    # 滑动参数
-    # ========================================================
-
-    # 原来你的代码：
-    #
-    # start_x = screen_width * 3 / 4
-    # y_position = screen_height / 3
-    #
-    # 这里稍微调整一下，避免窗口边缘问题。
-
-    start_x = int(screen_width * 0.70)
-    y_position = int(screen_height * 0.35)
-
-    move_distance = -150
-
-
-    print("")
-    print(
-        f"滑动起点: "
-        f"({start_x}, {y_position})"
-    )
-
-    print(
-        f"滑动距离: "
-        f"{move_distance}"
-    )
-
-    print("")
-
-
-    # ========================================================
-    # 频道切换
+    # 开始切换频道
     # ========================================================
 
     channel_count = 8
@@ -339,171 +421,126 @@ try:
         channel_count + 1
     ):
 
+        print("")
         print(
-            f"===== 滑动到频道 {i} ====="
+            f"========== "
+            f"频道 {i} "
+            f"=========="
         )
+
+
+        # ----------------------------------------------------
+        # 切换之前的 URL
+        # ----------------------------------------------------
+
+        old_url = get_video_url()
+
+        print(
+            f"滑动前 URL: "
+            f"{old_url}"
+        )
+
+
+        # ----------------------------------------------------
+        # 滑动
+        # ----------------------------------------------------
 
         try:
 
-            # ------------------------------------------------
-            # 每次重新创建 ActionChains
-            # ------------------------------------------------
-
-            action = ActionChains(driver)
-
-
-            # ------------------------------------------------
-            # 关键：
-            #
-            # move_by_offset 是相对于当前鼠标位置。
-            #
-            # 如果连续使用：
-            #
-            # 第一次：+start_x
-            # 第二次：再 +start_x
-            #
-            # 很容易超出窗口。
-            #
-            # 所以每次重新将鼠标移动到一个固定位置。
-            # ------------------------------------------------
-
-            try:
-
-                # Selenium 的鼠标位置可能已经发生偏移。
-                # 使用 JavaScript 将页面滚动到顶部，
-                # 保证目标区域稳定。
-
-                driver.execute_script(
-                    "window.scrollTo(0, 0);"
-                )
-
-            except Exception:
-                pass
-
-
-            # ------------------------------------------------
-            # 方案：
-            # 先通过 ActionChains 从当前位置移动到目标点。
-            #
-            # 使用 move_by_offset。
-            # 如果第一次成功，后面仍可能存在偏移问题，
-            # 所以每次 ActionChains 完成后 reset。
-            # ------------------------------------------------
-
-            action.move_by_offset(
-                start_x,
-                y_position
+            swipe_swiper(
+                distance=-250
             )
-
-            action.click_and_hold()
-
-            action.move_by_offset(
-                move_distance,
-                0
-            )
-
-            action.release()
-
-            action.perform()
-
-            print("滑动完成")
-
-
-            # ------------------------------------------------
-            # 等待页面 JS 处理频道切换
-            # ------------------------------------------------
-
-            time.sleep(3)
-
-
-            # ------------------------------------------------
-            # 获取当前 videoBox
-            # ------------------------------------------------
-
-            video_element = WebDriverWait(
-                driver,
-                10
-            ).until(
-                EC.presence_of_element_located(
-                    (By.ID, 'videoBox')
-                )
-            )
-
-
-            # ------------------------------------------------
-            # 获取当前直播源
-            # ------------------------------------------------
-
-            current_live_url = (
-                video_element.get_attribute('src')
-            )
-
-            print(
-                f"当前 URL: "
-                f"{current_live_url}"
-            )
-
-
-            # ------------------------------------------------
-            # 判断 URL 是否发生变化
-            # ------------------------------------------------
-
-            if (
-                current_live_url
-                and
-                current_live_url != default_live_url
-            ):
-
-                # 第7次不加入
-                if i not in [7]:
-
-                    live_sources.append(
-                        (
-                            i,
-                            current_live_url
-                        )
-                    )
-
-                print(
-                    f"{i}: 当前直播源: "
-                    f"{current_live_url}"
-                )
-
-                # 更新当前 URL
-                default_live_url = (
-                    current_live_url
-                )
-
-            else:
-
-                print(
-                    f"{i}: "
-                    "未检测到新直播源"
-                )
-
 
         except Exception as e:
 
             print(
-                f"频道 {i} 滑动失败: "
+                f"Swiper 滑动失败: "
                 f"{type(e).__name__}: {e}"
             )
 
+            continue
+
 
         # ----------------------------------------------------
-        # 防止 ActionChains 状态残留
+        # 等待频道切换
         # ----------------------------------------------------
 
-        try:
-            action.reset_actions()
-        except Exception:
-            pass
+        print(
+            "等待直播源切换..."
+        )
+
+        new_url = None
+
+
+        # 最多等待 8 秒
+        for wait_count in range(16):
+
+            time.sleep(0.5)
+
+            new_url = get_video_url()
+
+            print(
+                f"  检测 {wait_count + 1}/16: "
+                f"{new_url}"
+            )
+
+            if (
+                new_url
+                and
+                new_url != old_url
+            ):
+
+                break
+
+
+        # ----------------------------------------------------
+        # 判断结果
+        # ----------------------------------------------------
+
+        if (
+            new_url
+            and
+            new_url != old_url
+        ):
+
+            print(
+                f"频道 {i} 获取成功:"
+            )
+
+            print(
+                f"  {new_url}"
+            )
+
+
+            # ------------------------------------------------
+            # 第7次不保存
+            # ------------------------------------------------
+
+            if i not in [7]:
+
+                live_sources.append(
+                    (
+                        i,
+                        new_url
+                    )
+                )
+
+            default_live_url = new_url
+
+
+        else:
+
+            print(
+                f"频道 {i}: "
+                "直播源没有变化"
+            )
+
 
         time.sleep(1)
 
 
 # ============================================================
-# 异常处理
+# 异常
 # ============================================================
 
 except Exception as e:
@@ -522,13 +559,17 @@ except Exception as e:
 finally:
 
     print("")
-    print("正在关闭 Chrome...")
+    print(
+        "正在关闭 Chrome..."
+    )
 
     try:
 
         driver.quit()
 
-        print("Chrome 已关闭")
+        print(
+            "Chrome 已关闭"
+        )
 
     except Exception as e:
 
@@ -543,26 +584,24 @@ finally:
 # ============================================================
 
 print("")
-print("正在生成 ShaanxiTV.m3u...")
+print(
+    "正在生成 ShaanxiTV.m3u..."
+)
 
 
 with open(
-    'ShaanxiTV.m3u',
-    'w',
-    encoding='utf-8'
+    "ShaanxiTV.m3u",
+    "w",
+    encoding="utf-8"
 ) as f:
 
-    # --------------------------------------------------------
-    # M3U 头
-    # --------------------------------------------------------
-
     f.write(
-        '#EXTM3U\n'
+        "#EXTM3U\n"
     )
 
 
     # --------------------------------------------------------
-    # 陕西广电频道
+    # 陕西广电
     # --------------------------------------------------------
 
     for channel_id, source in live_sources:
@@ -573,34 +612,38 @@ with open(
         )
 
         f.write(
-            f'#EXTINF:-1, {channel_name}\n'
+            f"#EXTINF:-1, {channel_name}\n"
         )
 
         f.write(
-            f'{source}\n'
+            f"{source}\n"
         )
 
 
     # --------------------------------------------------------
-    # 额外直播源
+    # 西安电视台
     # --------------------------------------------------------
 
     for channel_name, source in additional_sources:
 
         f.write(
-            f'#EXTINF:-1, {channel_name}\n'
+            f"#EXTINF:-1, {channel_name}\n"
         )
 
         f.write(
-            f'{source}\n'
+            f"{source}\n"
         )
 
 
 # ============================================================
-# 完成
+# 输出结果
 # ============================================================
 
 print("")
+print(
+    "========================================"
+)
+
 print(
     "已生成 ShaanxiTV.m3u 文件"
 )
@@ -610,8 +653,13 @@ print(
     f"{len(live_sources)} 个"
 )
 
+print(
+    "========================================"
+)
+
+
 for channel_id, source in live_sources:
 
     print(
-        f"  {channel_id}: {source}"
+        f"{channel_id}: {source}"
     )
