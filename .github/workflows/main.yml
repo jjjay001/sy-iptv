@@ -17,20 +17,26 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-    
+        with:
+          fetch-depth: 0  # 拉取完整历史，确保 rebase 顺利执行
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: 3.8
 
       - name: Install dependencies
-      
-        run:  
-             pip install selenium requests futures eventlet beautifulsoup4
-      - name: Run fetch_stream
-        run: python ${{ github.workspace }}/fetch_streams.py
+        run: |
+          pip install selenium requests futures eventlet beautifulsoup4
 
-        
+      - name: Run fetch_stream (失败后自动等待 30 分钟重试)
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10      # 单次运行超时时间为 10 分钟
+          max_attempts: 3         # 最多尝试 3 次（1次首次执行 + 2次失败重试）
+          retry_wait_seconds: 1800 # 失败后等待 1800 秒（30 分钟）再重新抓取
+          command: python ${{ github.workspace }}/fetch_streams.py
+
       - name: 提交
         run: |
           git config --global user.email "315723172@qq.com"
@@ -40,5 +46,3 @@ jobs:
           git commit -m "ShaanxiTV.m3u文件" || echo "No changes to commit"
           git pull --rebase origin main
           git push origin main
-          exit 0
-
