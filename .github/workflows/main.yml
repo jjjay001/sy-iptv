@@ -38,5 +38,7 @@ jobs:
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/jjjay001/sy-iptv.git
           git add .
           git commit -m "ShaanxiTV.m3u文件" || echo "No changes to commit"
+          git pull --rebase origin main
           git push origin main
           exit 0
+
