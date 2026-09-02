@@ -17,19 +17,24 @@ options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
 options.add_argument('--disable-gpu')
 options.add_argument('--disable-software-rasterizer')
-options.add_argument('--window-size=640,1000')
+options.add_argument('--window-size=1280,800')
+
+# 显式指定语言与 SSL 忽略策略
+options.add_argument('--lang=zh-CN')
+options.add_argument('--ignore-certificate-errors')
+options.add_argument('--allow-running-insecure-content')
 
 # 防封与绕过自动化检测
 options.add_argument('--disable-blink-features=AutomationControlled')
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
 
-# DOM 解析完即返回
-options.page_load_strategy = 'eager'
+# 更稳妥的页面加载策略：normal 确保核心资源（如 Swiper.js）执行完毕
+options.page_load_strategy = 'normal'
 
+# 更标准的 Android Chrome 移动端 User-Agent
 options.add_argument(
-    '--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) '
-    'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
+    '--user-agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36'
 )
 
 # 开启性能日志监听（用于捕获网络请求中的 .m3u8 真实接口）
@@ -103,28 +108,41 @@ def get_valid_m3u8_url(timeout=8):
 # 主程序
 # ============================================================
 try:
-    url = "http://m.snrtv.com/snrtv_tv/index.html"
+    # 优先采用 https 协议
+    url = "https://m.snrtv.com/snrtv_tv/index.html"
     print(f"正在打开网页: {url}")
     
     try:
         driver.get(url)
     except TimeoutException:
-        print("网页加载超时（已忽略，继续解析 DOM）...")
+        print("警告: 网页加载超时，尝试停止加载并继续解析 DOM...")
+        driver.execute_script("window.stop();")
 
-    # 等待 Swiper 区域就绪 (带异常捕捉)
+    # 打印诊断数据（帮助排查 CI 环境下是否被 403 / 防火墙墙掉）
+    print(f"当前实际 URL: {driver.current_url}")
+    print(f"当前页面标题: {driver.title}")
+
+    # 等待 Swiper 区域或备用频道节点就绪 (宽泛匹配选择器)
     print("等待频道列表加载...")
+    css_selectors = "#programSwiper .swiper-slide, .swiper-wrapper .swiper-slide, .channel-list li"
+    
     try:
-        WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "#programSwiper .swiper-slide"))
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors))
         )
     except TimeoutException:
-        print("警告: 显式等待超时，尝试直接强行寻找 DOM 节点...")
+        print("警告: 显式等待超时，尝试强行寻找 DOM 节点...")
 
-    time.sleep(2)
+    time.sleep(3)
 
-    # 直接获取所有 slide 进行迭代与点击切台
-    slides = driver.find_elements(By.CSS_SELECTOR, "#programSwiper .swiper-slide")
+    # 兼容多种 CSS 选择器获取频道 slide
+    slides = driver.find_elements(By.CSS_SELECTOR, css_selectors)
     print(f"检测到共有 {len(slides)} 个频道选项")
+
+    # 诊断输出：如果依然为 0，打印 Body 源码的前 300 字符定位问题
+    if len(slides) == 0:
+        body_text = driver.find_element(By.TAG_NAME, "body").text.replace("\n", " ")[:300]
+        print(f"[PAGE BODY HEAD]: {body_text}")
 
     for idx, slide in enumerate(slides):
         channel_name = channel_ys.get(idx, f"陕西频道_{idx}")
@@ -135,18 +153,18 @@ try:
             driver.execute_script("arguments[0].click();", slide)
             # 方案2: 配合 Swiper 实例的 slideTo 强制跳转并触发播放
             driver.execute_script(f"""
-            const swiperEl = document.querySelector('#programSwiper');
+            const swiperEl = document.querySelector('#programSwiper') || document.querySelector('.swiper-container');
             if (swiperEl && swiperEl.swiper) {{
                 swiperEl.swiper.slideTo({idx});
             }}
-            const v = document.getElementById('videoBox');
+            const v = document.getElementById('videoBox') || document.querySelector('video');
             if (v && v.play) {{ v.play(); }}
             """)
         except Exception as e:
             print(f"触发切台指令失败: {e}")
 
-        # 给播放器响应、网络发送请求留出 3 秒缓冲
-        time.sleep(1.5)
+        # 给播放器响应、网络发送请求留出 2 秒缓冲
+        time.sleep(2)
 
         # 循环校验获取新的 m3u8 (最长等待 8 秒)
         m3u8_url = get_valid_m3u8_url(timeout=8)
