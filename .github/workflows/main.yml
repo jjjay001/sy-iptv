@@ -1,4 +1,4 @@
-Name: update-lives-list
+name: update-lives-list
 
 on:
   schedule:
