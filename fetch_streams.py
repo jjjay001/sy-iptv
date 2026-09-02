@@ -5,11 +5,11 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 # ============================================================
-# Chrome 配置 (针对 GitHub Actions 环境全面优化)
+# Chrome 配置 (针对 GitHub Actions 环境及 SSL/TLS 兼容性全面优化)
 # ============================================================
 options = webdriver.ChromeOptions()
 options.add_argument('--headless=new')
@@ -19,10 +19,16 @@ options.add_argument('--disable-gpu')
 options.add_argument('--disable-software-rasterizer')
 options.add_argument('--window-size=1280,800')
 
-# 显式指定语言与 SSL 忽略策略
+# 显式指定语言
 options.add_argument('--lang=zh-CN')
+
+# 【核心修改】修复 ERR_SSL_VERSION_OR_CIPHER_MISMATCH 报错的关键选项
 options.add_argument('--ignore-certificate-errors')
+options.add_argument('--ignore-ssl-errors=yes')
+options.add_argument('--allow-insecure-localhost')
 options.add_argument('--allow-running-insecure-content')
+options.add_argument('--ssl-version-min=tls1.0')      # 允许回退到旧版 TLS 协议
+options.add_argument('--ssl-version-max=tls1.3')
 
 # 防封与绕过自动化检测
 options.add_argument('--disable-blink-features=AutomationControlled')
@@ -108,12 +114,19 @@ def get_valid_m3u8_url(timeout=8):
 # 主程序
 # ============================================================
 try:
-    # 优先采用 https 协议
-    url = "https://m.snrtv.com/snrtv_tv/index.html"
-    print(f"正在打开网页: {url}")
+    url_https = "https://m.snrtv.com/snrtv_tv/index.html"
+    url_http = "http://m.snrtv.com/snrtv_tv/index.html"
+    
+    print(f"正在打开网页: {url_https}")
     
     try:
-        driver.get(url)
+        driver.get(url_https)
+    except WebDriverException as e:
+        if "ERR_SSL" in str(e) or "CIPHER_MISMATCH" in str(e):
+            print("警告: HTTPS 连接触发 SSL 协议错误，正在回退尝试 HTTP 协议...")
+            driver.get(url_http)
+        else:
+            raise e
     except TimeoutException:
         print("警告: 网页加载超时，尝试停止加载并继续解析 DOM...")
         driver.execute_script("window.stop();")
