@@ -20,17 +20,15 @@ jobs:
         with:
           fetch-depth: 0  # 拉取完整历史，确保 rebase 顺利执行
 
-      # 1. 显式锁定 Runner 全局 Node 运行时环境为 Node 24
-      - name: Setup Node.js 24
+      # 1. 显式锁定 Runner 全局 Node 运行时环境为 Node 20 (setup-node 最佳兼容版)
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '20'
 
-      # 2. 免费接入 Cloudflare WARP 边缘网络（解决机房 IP 封禁与拦截）
+      # 2. 免费接入 Cloudflare WARP 边缘网络（已替换为稳定可用的 Action，解决机房 IP 封禁与拦截）
       - name: Setup Cloudflare WARP
-        uses: fscarmen/warp-on-actions@v1
-        with:
-          stack: dual  # 同时开启 IPv4 / IPv6 自动路由
+        uses: userdocs/warp-action@v1
 
       # 3. 配置 Python 环境
       - name: Set up Python
