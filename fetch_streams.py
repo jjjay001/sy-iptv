@@ -9,7 +9,7 @@ from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 # ============================================================
-# Chrome 配置 (针对 GitHub Actions 环境及 SSL/TLS 兼容性全面优化)
+# Chrome 配置 (针对加载超时及 SSL/TLS 协议全面优化)
 # ============================================================
 options = webdriver.ChromeOptions()
 options.add_argument('--headless=new')
@@ -22,12 +22,12 @@ options.add_argument('--window-size=1280,800')
 # 显式指定语言
 options.add_argument('--lang=zh-CN')
 
-# 【核心修改】修复 ERR_SSL_VERSION_OR_CIPHER_MISMATCH 报错的关键选项
+# 忽略 SSL/TLS 错误
 options.add_argument('--ignore-certificate-errors')
 options.add_argument('--ignore-ssl-errors=yes')
 options.add_argument('--allow-insecure-localhost')
 options.add_argument('--allow-running-insecure-content')
-options.add_argument('--ssl-version-min=tls1.0')      # 允许回退到旧版 TLS 协议
+options.add_argument('--ssl-version-min=tls1.0')
 options.add_argument('--ssl-version-max=tls1.3')
 
 # 防封与绕过自动化检测
@@ -35,8 +35,8 @@ options.add_argument('--disable-blink-features=AutomationControlled')
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
 
-# 更稳妥的页面加载策略：normal 确保核心资源（如 Swiper.js）执行完毕
-options.page_load_strategy = 'normal'
+# 【核心修复】改为 'eager' 或 'none'，不再傻等网页所有广告/跟踪脚本/媒体加载完成
+options.page_load_strategy = 'eager'
 
 # 更标准的 Android Chrome 移动端 User-Agent
 options.add_argument(
@@ -50,7 +50,10 @@ options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
 
 print("正在启动 Chrome...")
 driver = webdriver.Chrome(options=options)
-driver.set_page_load_timeout(30)
+
+# 【核心修复】将渲染器超时时间放宽到 15 秒，配合 script/page_load 超时拦截
+driver.set_page_load_timeout(15)
+driver.set_script_timeout(10)
 
 # 存储结果列表: [(频道名称, 直播源URL)]
 live_sources = []
@@ -93,7 +96,7 @@ def get_valid_m3u8_url(timeout=8):
     """【双保险 2】多维检索并提取有效的 .m3u8 视频流地址"""
     start_time = time.time()
     while time.time() - start_time < timeout:
-        # 1. 优先查网络抓包日志（最准，不怕 blob 或脚本封装）
+        # 1. 优先查网络抓包日志
         net_url = extract_m3u8_from_network_logs()
         if net_url:
             return net_url
@@ -121,50 +124,59 @@ try:
     
     try:
         driver.get(url_https)
+    except TimeoutException:
+        print("捕获到页面加载超时，强制停止页面加载并继续解析...")
+        try:
+            driver.execute_script("window.stop();")
+        except Exception:
+            pass
     except WebDriverException as e:
         if "ERR_SSL" in str(e) or "CIPHER_MISMATCH" in str(e):
-            print("警告: HTTPS 连接触发 SSL 协议错误，正在回退尝试 HTTP 协议...")
-            driver.get(url_http)
+            print("警告: HTTPS 失败，尝试回退 HTTP 协议...")
+            try:
+                driver.get(url_http)
+            except TimeoutException:
+                driver.execute_script("window.stop();")
         else:
             raise e
-    except TimeoutException:
-        print("警告: 网页加载超时，尝试停止加载并继续解析 DOM...")
-        driver.execute_script("window.stop();")
 
-    # 打印诊断数据（帮助排查 CI 环境下是否被 403 / 防火墙墙掉）
-    print(f"当前实际 URL: {driver.current_url}")
-    print(f"当前页面标题: {driver.title}")
+    # 打印诊断数据
+    try:
+        print(f"当前实际 URL: {driver.current_url}")
+        print(f"当前页面标题: {driver.title}")
+    except Exception:
+        pass
 
-    # 等待 Swiper 区域或备用频道节点就绪 (宽泛匹配选择器)
+    # 等待 Swiper 区域或备用频道节点就绪
     print("等待频道列表加载...")
     css_selectors = "#programSwiper .swiper-slide, .swiper-wrapper .swiper-slide, .channel-list li"
     
     try:
-        WebDriverWait(driver, 15).until(
+        WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors))
         )
     except TimeoutException:
-        print("警告: 显式等待超时，尝试强行寻找 DOM 节点...")
+        print("警告: 显式等待超时，尝试强行寻找已存在的 DOM 节点...")
 
-    time.sleep(3)
+    time.sleep(2)
 
-    # 兼容多种 CSS 选择器获取频道 slide
+    # 获取频道 slide
     slides = driver.find_elements(By.CSS_SELECTOR, css_selectors)
     print(f"检测到共有 {len(slides)} 个频道选项")
 
-    # 诊断输出：如果依然为 0，打印 Body 源码的前 300 字符定位问题
     if len(slides) == 0:
-        body_text = driver.find_element(By.TAG_NAME, "body").text.replace("\n", " ")[:300]
-        print(f"[PAGE BODY HEAD]: {body_text}")
+        try:
+            body_text = driver.find_element(By.TAG_NAME, "body").text.replace("\n", " ")[:300]
+            print(f"[PAGE BODY HEAD]: {body_text}")
+        except Exception:
+            pass
 
     for idx, slide in enumerate(slides):
         channel_name = channel_ys.get(idx, f"陕西频道_{idx}")
         print(f"\n========== 正在获取频道 [{idx}]: {channel_name} ==========")
 
         try:
-            # 方案1: JS 强制点击 Slide 节点
             driver.execute_script("arguments[0].click();", slide)
-            # 方案2: 配合 Swiper 实例的 slideTo 强制跳转并触发播放
             driver.execute_script(f"""
             const swiperEl = document.querySelector('#programSwiper') || document.querySelector('.swiper-container');
             if (swiperEl && swiperEl.swiper) {{
@@ -176,10 +188,8 @@ try:
         except Exception as e:
             print(f"触发切台指令失败: {e}")
 
-        # 给播放器响应、网络发送请求留出 2 秒缓冲
         time.sleep(2)
 
-        # 循环校验获取新的 m3u8 (最长等待 8 秒)
         m3u8_url = get_valid_m3u8_url(timeout=8)
 
         if m3u8_url:
@@ -211,12 +221,10 @@ print("\n正在生成 ShaanxiTV.m3u...")
 with open("ShaanxiTV.m3u", "w", encoding="utf-8") as f:
     f.write("#EXTM3U\n")
 
-    # 写入陕西广电系列
     for channel_name, source in live_sources:
         f.write(f"#EXTINF:-1, {channel_name}\n")
         f.write(f"{source}\n")
 
-    # 写入西安电视台系列
     for channel_name, source in additional_sources:
         f.write(f"#EXTINF:-1, {channel_name}\n")
         f.write(f"{source}\n")
