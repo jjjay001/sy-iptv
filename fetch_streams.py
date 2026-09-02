@@ -35,10 +35,10 @@ options.add_argument('--disable-blink-features=AutomationControlled')
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
 
-# 【核心修复】改为 'eager' 或 'none'，不再傻等网页所有广告/跟踪脚本/媒体加载完成
+# 页面加载策略：eager
 options.page_load_strategy = 'eager'
 
-# 更标准的 Android Chrome 移动端 User-Agent
+# 标准 Android Chrome 移动端 User-Agent
 options.add_argument(
     '--user-agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36'
 )
@@ -51,14 +51,13 @@ options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
 print("正在启动 Chrome...")
 driver = webdriver.Chrome(options=options)
 
-# 【核心修复】将渲染器超时时间放宽到 15 秒，配合 script/page_load 超时拦截
 driver.set_page_load_timeout(15)
 driver.set_script_timeout(10)
 
 # 存储结果列表: [(频道名称, 直播源URL)]
 live_sources = []
 
-# 频道映射表
+# 陕西广电 8 大核心频道映射表
 channel_ys = {
     0: "陕西卫视",
     1: "农林卫视",
@@ -79,7 +78,7 @@ additional_sources = [
 ]
 
 def extract_m3u8_from_network_logs():
-    """【双保险 1】从 Performance 网络日志中逆向抓取最新发出的 .m3u8 请求"""
+    """从 Performance 网络日志中逆向抓取最新发出的 .m3u8 请求"""
     try:
         logs = driver.get_log('performance')
         for entry in reversed(logs):
@@ -93,15 +92,13 @@ def extract_m3u8_from_network_logs():
     return None
 
 def get_valid_m3u8_url(timeout=8):
-    """【双保险 2】多维检索并提取有效的 .m3u8 视频流地址"""
+    """多维检索并提取有效的 .m3u8 视频流地址"""
     start_time = time.time()
     while time.time() - start_time < timeout:
-        # 1. 优先查网络抓包日志
         net_url = extract_m3u8_from_network_logs()
         if net_url:
             return net_url
 
-        # 2. 备用逻辑：解析 DOM 节点
         try:
             video = driver.find_element(By.ID, "videoBox")
             src = video.get_attribute("src")
@@ -140,14 +137,12 @@ try:
         else:
             raise e
 
-    # 打印诊断数据
     try:
         print(f"当前实际 URL: {driver.current_url}")
         print(f"当前页面标题: {driver.title}")
     except Exception:
         pass
 
-    # 等待 Swiper 区域或备用频道节点就绪
     print("等待频道列表加载...")
     css_selectors = "#programSwiper .swiper-slide, .swiper-wrapper .swiper-slide, .channel-list li"
     
@@ -160,18 +155,15 @@ try:
 
     time.sleep(2)
 
-    # 获取频道 slide
     slides = driver.find_elements(By.CSS_SELECTOR, css_selectors)
     print(f"检测到共有 {len(slides)} 个频道选项")
 
-    if len(slides) == 0:
-        try:
-            body_text = driver.find_element(By.TAG_NAME, "body").text.replace("\n", " ")[:300]
-            print(f"[PAGE BODY HEAD]: {body_text}")
-        except Exception:
-            pass
-
+    # 【优化】主频道共 8 个，抓满 8 个立即跳出，防止在 Swiper loop 镜像节点上浪费时间
     for idx, slide in enumerate(slides):
+        if len(live_sources) >= len(channel_ys):
+            print("\n已成功获取全部 8 个陕西主频道，终止后续重复节点解析。")
+            break
+
         channel_name = channel_ys.get(idx, f"陕西频道_{idx}")
         print(f"\n========== 正在获取频道 [{idx}]: {channel_name} ==========")
 
@@ -233,9 +225,6 @@ print("========================================")
 print(f"已生成 ShaanxiTV.m3u 文件，共获取 {len(live_sources)} 个陕西广电直播源")
 print("========================================")
 
-# ============================================================
-# 熔断机制：若未获取到任何陕西源，主动抛出 exit 1 触发重试机制
-# ============================================================
 if len(live_sources) == 0:
     print("\n[ERROR] 本次未成功抓取到任何陕西广电直播源，触发退出码 1 启动重试机制！")
     sys.exit(1)
