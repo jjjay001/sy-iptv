@@ -20,15 +20,23 @@ jobs:
         with:
           fetch-depth: 0  # 拉取完整历史，确保 rebase 顺利执行
 
-      # 1. 显式锁定 Runner 全局 Node 运行时环境为 Node 20 (setup-node 最佳兼容版)
+      # 1. 配置 Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # 2. 免费接入 Cloudflare WARP 边缘网络（已替换为稳定可用的 Action，解决机房 IP 封禁与拦截）
-      - name: Setup Cloudflare WARP
-        uses: userdocs/warp-action@v1
+      # 2. 通过 Shell 脚本直接安装并启动 Cloudflare WARP（不依赖第三方 Action，永不失效）
+      - name: Install and Start Cloudflare WARP
+        run: |
+          curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+          sudo apt-get update && sudo apt-get install -y cloudflare-warp
+          warp-cli registration new || warp-cli register
+          warp-cli connect
+          sleep 5
+          warp-cli status
+          curl -4 ifconfig.me || true
 
       # 3. 配置 Python 环境
       - name: Set up Python
