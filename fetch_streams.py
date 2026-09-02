@@ -1,13 +1,15 @@
 import sys
 import time
+import json
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 # ============================================================
-# Chrome 配置
+# Chrome 配置 (针对 GitHub Actions 环境全面优化)
 # ============================================================
 options = webdriver.ChromeOptions()
 options.add_argument('--headless=new')
@@ -17,7 +19,12 @@ options.add_argument('--disable-gpu')
 options.add_argument('--disable-software-rasterizer')
 options.add_argument('--window-size=640,1000')
 
-# 【修改1】DOM解析完即返回，防止因外链或慢速静态资源挂起导致 TimeoutException
+# 防封与绕过自动化检测
+options.add_argument('--disable-blink-features=AutomationControlled')
+options.add_experimental_option("excludeSwitches", ["enable-automation"])
+options.add_experimental_option('useAutomationExtension', False)
+
+# DOM 解析完即返回
 options.page_load_strategy = 'eager'
 
 options.add_argument(
@@ -25,9 +32,14 @@ options.add_argument(
     'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
 )
 
+# 开启性能日志监听（用于捕获网络请求中的 .m3u8 真实接口）
+capabilities = DesiredCapabilities.CHROME.copy()
+capabilities['goog:loggingPrefs'] = {'performance': 'ALL'}
+options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
+
 print("正在启动 Chrome...")
 driver = webdriver.Chrome(options=options)
-driver.set_page_load_timeout(20)
+driver.set_page_load_timeout(30)
 
 # 存储结果列表: [(频道名称, 直播源URL)]
 live_sources = []
@@ -52,17 +64,38 @@ additional_sources = [
     ("西安丝路", "https://xatv-yt.xiancity.cn/live/5/index.m3u8"),
 ]
 
+def extract_m3u8_from_network_logs():
+    """【双保险 1】从 Performance 网络日志中逆向抓取最新发出的 .m3u8 请求"""
+    try:
+        logs = driver.get_log('performance')
+        for entry in reversed(logs):
+            log = json.loads(entry['message'])['message']
+            if log['method'] == 'Network.requestWillBeSent':
+                url = log['params']['request']['url']
+                if '.m3u8' in url and not url.endswith('.html'):
+                    return url
+    except Exception:
+        pass
+    return None
+
 def get_valid_m3u8_url(timeout=8):
-    """【修改2】安全获取有效的 .m3u8 视频流地址，自动过滤掉 html 页面链接"""
+    """【双保险 2】多维检索并提取有效的 .m3u8 视频流地址"""
     start_time = time.time()
     while time.time() - start_time < timeout:
+        # 1. 优先查网络抓包日志（最准，不怕 blob 或脚本封装）
+        net_url = extract_m3u8_from_network_logs()
+        if net_url:
+            return net_url
+
+        # 2. 备用逻辑：解析 DOM 节点
         try:
             video = driver.find_element(By.ID, "videoBox")
             src = video.get_attribute("src")
-            if src and (src.endswith(".m3u8") or "m3u8" in src or ("http" in src and not src.endswith(".html"))):
+            if src and (src.endswith(".m3u8") or "m3u8" in src) and not src.startswith("blob:"):
                 return src
         except Exception:
             pass
+
         time.sleep(0.5)
     return None
 
@@ -78,14 +111,18 @@ try:
     except TimeoutException:
         print("网页加载超时（已忽略，继续解析 DOM）...")
 
-    # 等待 Swiper 区域就绪
+    # 等待 Swiper 区域就绪 (带异常捕捉)
     print("等待频道列表加载...")
-    WebDriverWait(driver, 15).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "#programSwiper .swiper-slide"))
-    )
+    try:
+        WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "#programSwiper .swiper-slide"))
+        )
+    except TimeoutException:
+        print("警告: 显式等待超时，尝试直接强行寻找 DOM 节点...")
+
     time.sleep(2)
 
-    # 【修改3】直接获取所有 slide 进行迭代与点击切台
+    # 直接获取所有 slide 进行迭代与点击切台
     slides = driver.find_elements(By.CSS_SELECTOR, "#programSwiper .swiper-slide")
     print(f"检测到共有 {len(slides)} 个频道选项")
 
@@ -96,18 +133,23 @@ try:
         try:
             # 方案1: JS 强制点击 Slide 节点
             driver.execute_script("arguments[0].click();", slide)
-            # 方案2: 配合 Swiper 实例的 slideTo 强制跳转
+            # 方案2: 配合 Swiper 实例的 slideTo 强制跳转并触发播放
             driver.execute_script(f"""
             const swiperEl = document.querySelector('#programSwiper');
             if (swiperEl && swiperEl.swiper) {{
                 swiperEl.swiper.slideTo({idx});
             }}
+            const v = document.getElementById('videoBox');
+            if (v && v.play) {{ v.play(); }}
             """)
         except Exception as e:
             print(f"触发切台指令失败: {e}")
 
-        # 循环校验获取新的 m3u8
-        m3u8_url = get_valid_m3u8_url(timeout=6)
+        # 给播放器响应、网络发送请求留出 3 秒缓冲
+        time.sleep(1.5)
+
+        # 循环校验获取新的 m3u8 (最长等待 8 秒)
+        m3u8_url = get_valid_m3u8_url(timeout=8)
 
         if m3u8_url:
             print(f"成功获取 [{channel_name}] 直播源: {m3u8_url}")
@@ -153,7 +195,7 @@ print(f"已生成 ShaanxiTV.m3u 文件，共获取 {len(live_sources)} 个陕西
 print("========================================")
 
 # ============================================================
-# 【修改4】熔断机制：若未获取到任何陕西源，主动抛出 exit 1 触发 GitHub Actions 30 分钟重试
+# 熔断机制：若未获取到任何陕西源，主动抛出 exit 1 触发重试机制
 # ============================================================
 if len(live_sources) == 0:
     print("\n[ERROR] 本次未成功抓取到任何陕西广电直播源，触发退出码 1 启动重试机制！")
