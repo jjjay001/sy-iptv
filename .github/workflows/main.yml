@@ -20,33 +20,27 @@ jobs:
         with:
           fetch-depth: 0  # 拉取完整历史，确保 rebase 顺利执行
 
-      # 1. 配置 Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      # 2. 配置 Python 环境
+      # 1. 配置 Python 环境
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      # 3. 安装爬虫依赖
+      # 2. 安装爬虫依赖
       - name: Install dependencies
         run: |
           pip install selenium requests futures eventlet beautifulsoup4
 
-      # 4. 执行 Python 抓取脚本
+      # 3. 执行 Python 抓取脚本
       - name: Run fetch_stream (失败后自动等待 30 分钟重试)
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 10      # 单次运行超时时间为 10 分钟
           max_attempts: 3         # 最多尝试 3 次（1次首次执行 + 2次失败重试）
           retry_wait_seconds: 1800 # 失败后等待 1800 秒（30 分钟）再重新抓取
           command: python ${{ github.workspace }}/fetch_streams.py
 
-      # 5. 将抓取生成的 m3u 文件提交保存回仓库
+      # 4. 将抓取生成的 m3u 文件提交保存回仓库
       - name: 提交结果
         run: |
           git config --global user.email "315723172@qq.com"
