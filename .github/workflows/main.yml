@@ -12,18 +12,24 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0  # 拉取完整历史，确保 rebase 顺利执行
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      # 显式锁定 Runner 全局 Node 运行时环境为 Node 24
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
         with:
-          python-version: 3.8
+          node-version: '24'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
       - name: Install dependencies
         run: |
