@@ -1,4 +1,4 @@
-name: update-lives-list
+Name: update-lives-list
 
 on:
   schedule:
@@ -26,42 +26,18 @@ jobs:
         with:
           node-version: '20'
 
-      # 2. 通过 Shell 脚本直接安装并启动 Cloudflare WARP（修正新版 warp-cli 语法与 TOS 确认）
-      - name: Install and Start Cloudflare WARP
-        run: |
-          curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
-          sudo apt-get update && sudo apt-get install -y cloudflare-warp
-          
-          # 使用新版语法注册并显式接受服务条款 (TOS)
-          sudo warp-cli --accept-tos registration new
-          sudo warp-cli --accept-tos connect
-          
-          # 循环等待并验证连接状态
-          echo "Waiting for WARP connection..."
-          for i in {1..10}; do
-            STATUS=$(sudo warp-cli status)
-            if echo "$STATUS" | grep -q "Connected"; then
-              echo "WARP connected successfully!"
-              break
-            fi
-            sleep 2
-          done
-          
-          curl -4 ifconfig.me || true
-
-      # 3. 配置 Python 环境
+      # 2. 配置 Python 环境
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      # 4. 安装爬虫依赖
+      # 3. 安装爬虫依赖
       - name: Install dependencies
         run: |
           pip install selenium requests futures eventlet beautifulsoup4
 
-      # 5. 执行 Python 抓取脚本
+      # 4. 执行 Python 抓取脚本
       - name: Run fetch_stream (失败后自动等待 30 分钟重试)
         uses: nick-fields/retry@v3
         with:
@@ -70,7 +46,7 @@ jobs:
           retry_wait_seconds: 1800 # 失败后等待 1800 秒（30 分钟）再重新抓取
           command: python ${{ github.workspace }}/fetch_streams.py
 
-      # 6. 将抓取生成的 m3u 文件提交保存回仓库
+      # 5. 将抓取生成的 m3u 文件提交保存回仓库
       - name: 提交结果
         run: |
           git config --global user.email "315723172@qq.com"
