@@ -114,28 +114,19 @@ def get_valid_m3u8_url(timeout=8):
 # 主程序
 # ============================================================
 try:
-    url_https = "https://m.snrtv.com/snrtv_tv/index.html"
+    # 直接设定为 HTTP URL
     url_http = "http://m.snrtv.com/snrtv_tv/index.html"
     
-    print(f"正在打开网页: {url_https}")
+    print(f"正在打开网页: {url_http}")
     
     try:
-        driver.get(url_https)
+        driver.get(url_http)
     except TimeoutException:
         print("捕获到页面加载超时，强制停止页面加载并继续解析...")
         try:
             driver.execute_script("window.stop();")
         except Exception:
             pass
-    except WebDriverException as e:
-        if "ERR_SSL" in str(e) or "CIPHER_MISMATCH" in str(e):
-            print("警告: HTTPS 失败，尝试回退 HTTP 协议...")
-            try:
-                driver.get(url_http)
-            except TimeoutException:
-                driver.execute_script("window.stop();")
-        else:
-            raise e
 
     try:
         print(f"当前实际 URL: {driver.current_url}")
