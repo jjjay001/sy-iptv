@@ -72,7 +72,7 @@ channel_ys = {
 additional_sources = [
     ("西安综合", "https://xatv-yt.xiancity.cn/live/1/index.m3u8"),
     ("西安都市", "https://xatv-yt.xiancity.cn/live/2/index.m3u8"),
-    ("西安商务资讯", "https://xatv-yt.xiancity.cn/live/3/index.m3u8"),
+   # ("西安商务资讯", "https://xatv-yt.xiancity.cn/live/3/index.m3u8"),
     ("西安影视", "https://xatv-yt.xiancity.cn/live/4/index.m3u8"),
     ("西安丝路", "https://xatv-yt.xiancity.cn/live/5/index.m3u8"),
 ]
