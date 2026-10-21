@@ -36,8 +36,8 @@ jobs:
         uses: nick-fields/retry@v4
         with:
           timeout_minutes: 10      # 单次运行超时时间为 10 分钟
-          max_attempts: 3         # 最多尝试 3 次（1次首次执行 + 2次失败重试）
-          retry_wait_seconds: 1800 # 失败后等待 1800 秒（30 分钟）再重新抓取
+          max_attempts: 6         # 最多尝试 3 次（1次首次执行 + 2次失败重试）
+          retry_wait_seconds: 1500 # 失败后等待 1800 秒（30 分钟）再重新抓取
           command: python ${{ github.workspace }}/fetch_streams.py
 
       # 4. 将抓取生成的 m3u 文件提交保存回仓库
