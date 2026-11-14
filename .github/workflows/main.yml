@@ -211,7 +211,7 @@ jobs:
             'https?://[^" )]+' \
             /tmp/snrtv_js/*.js 2>/dev/null | sort -u | head -100 || true
 
-      # 9. 新增：测试起点新闻 API
+      # 9. 测试起点新闻 API
       - name: Test Qidian TV API
         continue-on-error: true
         run: |
@@ -244,7 +244,7 @@ jobs:
             echo ""
           done
 
-      # 10. 新增：测试直播流 CDN
+      # 10. 测试直播流 CDN
       - name: Test SNRTV Live Stream
         continue-on-error: true
         run: |
@@ -317,11 +317,7 @@ jobs:
           echo ""
           echo "========== sTV / sRadio 变量检查 =========="
 
-          if [ -s /tmp/http.html ]; then
-            grep -nE 'sTV|sRadio' /tmp/http.html | head -30 || true
-          else
-            echo "主页文件不存在或为空"
-          fi
+          grep -nE 'sTV|sRadio' /tmp/http.html 2>/dev/null | head -30 || true
 
           echo ""
           echo "========== EmperorNewClothes.js =========="
@@ -342,7 +338,159 @@ jobs:
             /tmp/http.html \
             /tmp/snrtv_js/*.js 2>/dev/null || true
 
-      # 13. 执行原有抓取程序
+      # 13. 新增：定位 sTV 和 sRadio 的来源
+      - name: Find sTV and sRadio source
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/snrtv_js/linked
+
+          echo "========== 从 HTML 提取 script 地址并下载 =========="
+
+          python - <<'PY'
+          import os
+          import re
+          import requests
+          from urllib.parse import urljoin, urlparse
+
+          html_path = "/tmp/http.html"
+          save_dir = "/tmp/snrtv_js/linked"
+          os.makedirs(save_dir, exist_ok=True)
+
+          if not os.path.isfile(html_path):
+              print("HTML 文件不存在")
+              raise SystemExit(0)
+
+          html = open(html_path, encoding="utf-8", errors="ignore").read()
+
+          urls = re.findall(
+              r'<script[^>]+src\s*=\s*["\']([^"\']+)',
+              html,
+              re.I
+          )
+
+          print("发现 script 数量:", len(urls))
+
+          session = requests.Session()
+          session.headers.update({
+              "User-Agent": "Mozilla/5.0",
+              "Referer": "http://m.snrtv.com/snrtv_tv/index.html"
+          })
+
+          for src in urls:
+              url = urljoin(
+                  "http://m.snrtv.com/snrtv_tv/index.html",
+                  src
+              )
+
+              if not url.lower().split("?")[0].endswith(".js"):
+                  continue
+
+              name = os.path.basename(urlparse(url).path)
+              if not name:
+                  continue
+
+              path = os.path.join(save_dir, name)
+
+              try:
+                  r = session.get(url, timeout=20)
+                  print(
+                      "JS:", url,
+                      "HTTP:", r.status_code,
+                      "SIZE:", len(r.content)
+                  )
+
+                  if r.ok and r.content:
+                      with open(path, "wb") as f:
+                          f.write(r.content)
+              except Exception as e:
+                  print("下载失败:", url, str(e))
+          PY
+
+          echo ""
+          echo "========== 搜索所有 JS 和 HTML 中的变量 =========="
+
+          python - <<'PY'
+          import os
+          import re
+
+          roots = [
+              "/tmp/http.html",
+              "/tmp/snrtv_js"
+          ]
+
+          keywords = [
+              "sTV",
+              "sRadio",
+              "EmperorNewClothes",
+              "Dressing",
+              "Undress",
+              "videoHashMap",
+              "m3u8"
+          ]
+
+          files = []
+
+          for root in roots:
+              if not os.path.exists(root):
+                  continue
+
+              if os.path.isfile(root):
+                  files.append(root)
+                  continue
+
+              for base, _, names in os.walk(root):
+                  for name in names:
+                      if name.lower().endswith((".js", ".html")):
+                          files.append(os.path.join(base, name))
+
+          for path in files:
+              try:
+                  with open(path, "r", encoding="utf-8",
+                            errors="ignore") as f:
+                      content = f.read()
+              except Exception:
+                  continue
+
+              for keyword in keywords:
+                  matches = list(
+                      re.finditer(re.escape(keyword), content, re.I)
+                  )
+
+                  for match in matches[:15]:
+                      start = max(0, match.start() - 300)
+                      end = min(len(content), match.end() + 500)
+
+                      print("\n==========", path, keyword, "==========")
+                      print(content[start:end].replace("\n", " ")[:1000])
+
+          PY
+
+          echo ""
+          echo "========== 专门搜索变量赋值 =========="
+
+          grep -RInE \
+            '(^|[^[:alnum:]_$])(var[[:space:]]+)?sTV[[:space:]]*=|(^|[^[:alnum:]_$])(var[[:space:]]+)?sRadio[[:space:]]*=|sTV[[:space:]]*:|sRadio[[:space:]]*:' \
+            /tmp/http.html /tmp/snrtv_js 2>/dev/null | head -100 || true
+
+          echo ""
+          echo "========== 搜索 AJAX 和动态加载接口 =========="
+
+          grep -RInE \
+            'ajax|XMLHttpRequest|fetch\(|getJSON|loadScript|jsonp|sTV|sRadio' \
+            /tmp/http.html /tmp/snrtv_js 2>/dev/null | head -200 || true
+
+          echo ""
+          echo "========== 搜索所有 URL =========="
+
+          grep -RahoE \
+            'https?://[^"[:space:]<>)]+' \
+            /tmp/http.html /tmp/snrtv_js 2>/dev/null | sort -u | head -150 || true
+
+          echo ""
+          echo "========== 下载的 JS 文件清单 =========="
+          find /tmp/snrtv_js -type f -printf '%p %s bytes\n' 2>/dev/null || true
+
+      # 14. 执行原有抓取程序
       - name: Run fetch_stream
         uses: nick-fields/retry@v4
         with:
@@ -351,7 +499,7 @@ jobs:
           retry_wait_seconds: 1800
           command: python ${{ github.workspace }}/fetch_streams.py
 
-      # 14. 检查 M3U 文件
+      # 15. 检查 M3U 文件
       - name: Check M3U file
         if: always()
         run: |
@@ -365,7 +513,7 @@ jobs:
             echo "警告：ShaanxiTV.m3u 不存在或为空"
           fi
 
-      # 15. 提交 M3U 文件
+      # 16. 提交 M3U 文件
       - name: Commit M3U file
         if: success()
         run: |
