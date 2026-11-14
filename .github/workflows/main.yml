@@ -16,77 +16,120 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 拉取仓库代码
+      # 1. 拉取仓库
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 2. 配置 Python 环境
+      # 2. 配置 Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      # 3. 安装爬虫依赖
+      # 3. 安装依赖
       - name: Install dependencies
         run: |
           pip install selenium requests futures eventlet beautifulsoup4
 
-      # 4. DNS 解析测试
+      # 4. DNS 测试
       - name: Test SNRTV DNS
         continue-on-error: true
         run: |
           echo "===== DNS解析 ====="
           nslookup m.snrtv.com
 
-      # 5. HTTP 和 HTTPS 连通性测试
+      # 5. HTTP 和 HTTPS 测试
       - name: Test SNRTV HTTP and HTTPS
         continue-on-error: true
         run: |
-          echo "===== 测试 HTTP 80 ====="
-
-          curl -v -L \
+          echo "===== HTTP测试 ====="
+          curl -L -sS \
             --connect-timeout 10 \
             --max-time 20 \
             "http://m.snrtv.com/snrtv_tv/index.html" \
             -o /tmp/http.html \
-            -w "\nHTTP状态码: %{http_code}\n连接时间: %{time_connect}\n总时间: %{time_total}\n" || true
+            -w "\nHTTP状态码: %{http_code}\n总时间: %{time_total}\n" || true
 
-          echo "===== HTTP页面内容 ====="
-          if [ -f /tmp/http.html ]; then
-            head -c 2000 /tmp/http.html
-          fi
-
-          echo ""
-          echo "===== 测试 HTTPS 443 ====="
-
-          curl -v -L \
+          echo "===== HTTPS测试 ====="
+          curl -L -sS \
             --connect-timeout 10 \
             --max-time 20 \
             "https://m.snrtv.com/snrtv_tv/index.html" \
             -o /tmp/https.html \
-            -w "\nHTTPS状态码: %{http_code}\n连接时间: %{time_connect}\n总时间: %{time_total}\n" || true
+            -w "\nHTTPS状态码: %{http_code}\n总时间: %{time_total}\n" || true
 
-          echo "===== HTTPS页面内容 ====="
-          if [ -f /tmp/https.html ]; then
-            head -c 2000 /tmp/https.html
-          fi
+      # 6. 下载并检查网页 JS 文件
+      - name: Inspect SNRTV JavaScript
+        continue-on-error: true
+        run: |
+          BASE="http://res.cnwest.com/t/site/10001/a209bcf3e52b0593bd2c51ae47c9d6ab/assets"
 
-      # 6. 检查网页 JavaScript 和频道接口
-      - name: Inspect SNRTV scripts
+          mkdir -p /tmp/snrtv_js
+
+          echo "===== 下载 JS 文件 ====="
+
+          for item in \
+            "snrtv2020/js/EmperorNewClothes.js" \
+            "snrtv2020/js/dress.js" \
+            "snrtv2020/js/Event.js" \
+            "snrtv2020/js/programGuides.js" \
+            "public2018/js/zepto.min.js" \
+            "sxtvs2020/js/swiper.min.4.5.3.js"
+          do
+            filename=$(basename "$item")
+
+            echo ""
+            echo "===== $filename ====="
+
+            curl -L -sS \
+              --connect-timeout 10 \
+              --max-time 30 \
+              "$BASE/$item" \
+              -o "/tmp/snrtv_js/$filename" \
+              -w "HTTP状态码: %{http_code}\n下载大小: %{size_download}\n" || true
+
+            if [ -s "/tmp/snrtv_js/$filename" ]; then
+              echo "文件大小:"
+              wc -c "/tmp/snrtv_js/$filename"
+            else
+              echo "文件下载失败或为空"
+            fi
+          done
+
+          echo ""
+          echo "===== 搜索频道及接口关键词 ====="
+
+          grep -Ein \
+            'ajax|api|json|channel|channelName|channelId|live|m3u8|mp4|videoBox|play|tvList|tvlist|source|url:' \
+            /tmp/snrtv_js/*.js | head -200 || true
+
+          echo ""
+          echo "===== 搜索接口地址 ====="
+
+          grep -Eo \
+            'https?://[^"'\'' )]+' \
+            /tmp/snrtv_js/*.js | sort -u | head -100 || true
+
+      # 7. 检查网页中的频道相关代码
+      - name: Inspect SNRTV HTML
         continue-on-error: true
         run: |
           echo "===== 页面标题 ====="
           grep -o '<title>[^<]*</title>' /tmp/http.html || true
 
-          echo "===== JavaScript 文件 ====="
-          grep -Eoi '<script[^>]+src="[^"]+"' /tmp/http.html || true
+          echo ""
+          echo "===== 频道容器 ====="
+          grep -Ein 'channelName|channelCur|videoBox|channel|m3u8|ajax' \
+            /tmp/http.html | head -100 || true
 
-          echo "===== 频道接口关键词 ====="
-          grep -Ein 'ajax|api|json|channel|live|m3u8|play' /tmp/http.html | head -50 || true
+          echo ""
+          echo "===== 页面内联脚本 ====="
+          grep -Ein 'script|channel|m3u8|ajax|api|json' \
+            /tmp/http.html | tail -100 || true
 
-      # 7. 执行 Python 抓取脚本，失败后自动重试
+      # 8. 执行原有抓取程序
       - name: Run fetch_stream
         uses: nick-fields/retry@v4
         with:
@@ -95,7 +138,7 @@ jobs:
           retry_wait_seconds: 1800
           command: python ${{ github.workspace }}/fetch_streams.py
 
-      # 8. 提交生成的 M3U 文件
+      # 9. 提交 M3U 文件
       - name: 提交结果
         run: |
           git config --global user.email "315723172@qq.com"
