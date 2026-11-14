@@ -210,6 +210,10 @@ jobs:
               "移动电视"
           ]
 
+          print("========== 写入陕西广电频道 ==========")
+
+          snrtv_count = 0
+
           for index, item in enumerate(channels, 1):
               name = (
                   item.get("name")
@@ -245,17 +249,44 @@ jobs:
               )
               lines.append(url)
 
+              snrtv_count += 1
+              print("{}：{}".format(name, url))
+
+          # 固定追加的西安电视台直播源
+          additional_sources = [
+              ("西安综合", "https://xatv-yt.xiancity.cn/live/1/index.m3u8"),
+              ("西安都市", "https://xatv-yt.xiancity.cn/live/2/index.m3u8"),
+              ("西安影视", "https://xatv-yt.xiancity.cn/live/4/index.m3u8"),
+              ("西安丝路", "https://xatv-yt.xiancity.cn/live/5/index.m3u8"),
+          ]
+
+          print("")
+          print("========== 追加西安电视台频道 ==========")
+
+          xian_count = 0
+
+          for name, url in additional_sources:
+              lines.append(
+                  '#EXTINF:-1 tvg-name="{}" group-title="西安电视台",{}'.format(
+                      name, name
+                  )
+              )
+              lines.append(url)
+
+              xian_count += 1
               print("{}：{}".format(name, url))
 
           if len(lines) <= 1:
-              raise RuntimeError("过滤后没有剩余有效频道")
+              raise RuntimeError("没有生成有效的 M3U 直播条目")
 
           with open(OUTPUT, "w", encoding="utf-8") as f:
               f.write("\n".join(lines) + "\n")
 
           print("")
           print("========== 生成完成 ==========")
-          print("电视直播频道:", (len(lines) - 1) // 2)
+          print("陕西广电频道:", snrtv_count)
+          print("西安电视台频道:", xian_count)
+          print("总频道数量:", snrtv_count + xian_count)
           print("M3U 文件:", OUTPUT)
           print("文件大小:", os.path.getsize(OUTPUT), "bytes")
 
@@ -278,7 +309,11 @@ jobs:
             exit 1
           fi
 
-          wc -l ShaanxiTV.m3u
+          echo "========== 频道数量 =========="
+          grep -c '^#EXTINF:' ShaanxiTV.m3u
+
+          echo ""
+          echo "========== M3U 内容 =========="
           cat ShaanxiTV.m3u
 
           echo ""
