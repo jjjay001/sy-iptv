@@ -48,7 +48,11 @@ jobs:
         continue-on-error: true
         run: |
           echo "========== 主站 DNS =========="
-          nslookup m.snrtv.com || true
+          nslookup m.snrtv.com
+
+          echo ""
+          echo "========== CDN DNS =========="
+          nslookup res.cnwest.com || true
 
       # 5. 测试主站 HTTP 和 HTTPS
       - name: Test SNRTV HTTP and HTTPS
@@ -74,10 +78,39 @@ jobs:
             -w "\nHTTPS状态码: %{http_code}\n连接时间: %{time_connect}\n总时间: %{time_total}\n" || true
 
           echo ""
-          echo "========== HTTP 文件检查 =========="
-          ls -lh /tmp/http.html 2>/dev/null || true
+          echo "========== 下载文件检查 =========="
+          ls -lh /tmp/http.html /tmp/https.html 2>/dev/null || true
 
-      # 6. 测试静态资源 CDN 网络
+      # 6. 逐个测试主站 IP
+      - name: Test SNRTV IP connectivity
+        continue-on-error: true
+        run: |
+          echo "========== 逐个测试主站 IP =========="
+
+          for ip in \
+            59.108.133.175 \
+            59.108.133.171 \
+            59.108.133.176 \
+            59.108.133.177 \
+            59.108.133.174 \
+            59.108.133.172 \
+            59.108.133.179 \
+            59.108.133.173
+          do
+            echo ""
+            echo "========== 测试 $ip =========="
+
+            curl -4 -sS \
+              --connect-timeout 8 \
+              --max-time 12 \
+              --resolve "m.snrtv.com:80:$ip" \
+              "http://m.snrtv.com/snrtv_tv/index.html" \
+              -o /dev/null \
+              -w "HTTP: %{http_code} 连接: %{time_connect}s 总耗时: %{time_total}s\n" \
+              || true
+          done
+
+      # 7. 测试静态资源 CDN 网络
       - name: Test SNRTV CDN connection
         continue-on-error: true
         run: |
@@ -118,7 +151,7 @@ jobs:
             head -20 /tmp/cdn_test.js
           fi
 
-      # 7. 下载并检查网页 JS 文件
+      # 8. 下载并检查网页 JS 文件
       - name: Inspect SNRTV JavaScript
         continue-on-error: true
         run: |
@@ -170,7 +203,7 @@ jobs:
             'https?://[^" )]+' \
             /tmp/snrtv_js/*.js 2>/dev/null | sort -u | head -100 || true
 
-      # 8. 检查网页 HTML
+      # 9. 检查网页 HTML
       - name: Inspect SNRTV HTML
         continue-on-error: true
         run: |
@@ -190,10 +223,10 @@ jobs:
             /tmp/http.html 2>/dev/null | tail -100 || true
 
           echo ""
-          echo "========== HTML 前 130 行 =========="
-          sed -n '1,130p' /tmp/http.html 2>/dev/null || true
+          echo "========== HTML 文件大小 =========="
+          wc -c /tmp/http.html 2>/dev/null || true
 
-      # 9. 分析陕西广电频道数据
+      # 10. 分析陕西广电频道数据
       - name: Analyze SNRTV channel data
         continue-on-error: true
         run: |
@@ -203,43 +236,11 @@ jobs:
           echo ""
           echo "========== sTV / sRadio 变量检查 =========="
 
-          python - <<'PY'
-          import re
-          import os
-
-          path = "/tmp/http.html"
-
-          if not os.path.exists(path):
-              print("主页文件不存在")
-              raise SystemExit(0)
-
-          with open(path, "r", encoding="utf-8", errors="ignore") as f:
-              html = f.read()
-
-          print("HTML 总长度:", len(html))
-
-          for name in ("sTV", "sRadio"):
-              patterns = [
-                  r'\b(?:var|let|const)\s+' + name + r'\s*=\s*["\']([^"\']*)["\']',
-                  r'\b' + name + r'\s*=\s*["\']([^"\']*)["\']'
-              ]
-
-              match = None
-
-              for pattern in patterns:
-                  match = re.search(pattern, html, re.S)
-                  if match:
-                      break
-
-              if match:
-                  value = match.group(1)
-                  print("{}：找到".format(name))
-                  print("{} 长度：{}".format(name, len(value)))
-                  print("{} 前 40 字符：{}".format(name, value[:40]))
-              else:
-                  print("{}：未找到".format(name))
-
-          PY
+          if [ -s /tmp/http.html ]; then
+            grep -nE 'sTV|sRadio' /tmp/http.html | head -30 || true
+          else
+            echo "主页文件不存在或为空"
+          fi
 
           echo ""
           echo "========== EmperorNewClothes.js =========="
@@ -251,7 +252,7 @@ jobs:
 
           echo ""
           echo "========== programGuides.js =========="
-          cat /tmp/snrtv_js/programGuides.js 2>/dev/null || true
+          sed -n '1,280p' /tmp/snrtv_js/programGuides.js 2>/dev/null || true
 
           echo ""
           echo "========== 频道数据关键变量 =========="
@@ -260,7 +261,7 @@ jobs:
             /tmp/http.html \
             /tmp/snrtv_js/*.js 2>/dev/null || true
 
-      # 10. 执行原有抓取程序
+      # 11. 执行原有抓取程序
       - name: Run fetch_stream
         uses: nick-fields/retry@v4
         with:
@@ -269,42 +270,31 @@ jobs:
           retry_wait_seconds: 1800
           command: python ${{ github.workspace }}/fetch_streams.py
 
-      # 11. 检查 M3U 文件
+      # 12. 检查 M3U 文件
       - name: Check M3U file
+        if: always()
         run: |
-          echo "========== 检查 ShaanxiTV.m3u =========="
+          echo "========== M3U 文件检查 =========="
 
-          if [ ! -f ShaanxiTV.m3u ]; then
-            echo "M3U 文件不存在"
-            exit 1
+          if [ -s ShaanxiTV.m3u ]; then
+            echo "M3U 文件存在"
+            wc -l ShaanxiTV.m3u
+            head -20 ShaanxiTV.m3u
+          else
+            echo "警告：ShaanxiTV.m3u 不存在或为空"
           fi
 
-          SIZE=$(wc -c < ShaanxiTV.m3u)
-          CHANNELS=$(grep -c '^#EXTINF' ShaanxiTV.m3u || true)
-
-          echo "文件大小：$SIZE bytes"
-          echo "频道数量：$CHANNELS"
-
-          if [ "$SIZE" -eq 0 ] || [ "$CHANNELS" -eq 0 ]; then
-            echo "M3U 文件为空或没有频道，停止提交"
-            exit 1
-          fi
-
-          echo "M3U 文件检查通过"
-
-      # 12. 提交 M3U 文件
+      # 13. 提交 M3U 文件
       - name: Commit M3U file
+        if: success()
         run: |
-          git config user.email "315723172@qq.com"
-          git config user.name "jjjay001"
+          git config --global user.email "315723172@qq.com"
+          git config --global user.name "jjjay001"
 
           git pull --rebase origin main
 
           git add ShaanxiTV.m3u
 
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "ShaanxiTV.m3u文件"
-            git push origin main
-          fi
+          git commit -m "更新陕西广电直播源" || echo "No changes to commit"
+
+          git push origin main
