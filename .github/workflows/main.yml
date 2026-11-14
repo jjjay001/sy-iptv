@@ -129,7 +129,28 @@ jobs:
           grep -Ein 'script|channel|m3u8|ajax|api|json' \
             /tmp/http.html | tail -100 || true
 
-      # 8. 执行原有抓取程序
+      # 8. 分析陕西广电频道数据
+      - name: 分析陕西广电频道数据
+        continue-on-error: true
+        run: |
+          echo "========== 网页内嵌配置 130-185 行 =========="
+          sed -n '130,185p' /tmp/http.html
+
+          echo ""
+          echo "========== EmperorNewClothes.js =========="
+          cat /tmp/snrtv_js/EmperorNewClothes.js
+
+          echo ""
+          echo "========== programGuides.js =========="
+          cat /tmp/snrtv_js/programGuides.js
+
+          echo ""
+          echo "========== 频道数据关键变量 =========="
+          grep -nE 'sTV|sRadio|videoHashMap|radioHashMap|Undress|loadScript|snr_Playlist|curPlaylist' \
+            /tmp/http.html \
+            /tmp/snrtv_js/*.js || true
+
+      # 9. 执行原有抓取程序
       - name: Run fetch_stream
         uses: nick-fields/retry@v4
         with:
@@ -138,7 +159,7 @@ jobs:
           retry_wait_seconds: 1800
           command: python ${{ github.workspace }}/fetch_streams.py
 
-      # 9. 提交 M3U 文件
+      # 10. 提交 M3U 文件
       - name: 提交结果
         run: |
           git config --global user.email "315723172@qq.com"
