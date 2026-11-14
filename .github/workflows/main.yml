@@ -48,11 +48,19 @@ jobs:
         continue-on-error: true
         run: |
           echo "========== 主站 DNS =========="
-          nslookup m.snrtv.com
+          nslookup m.snrtv.com || true
 
           echo ""
           echo "========== CDN DNS =========="
           nslookup res.cnwest.com || true
+
+          echo ""
+          echo "========== 起点新闻 API DNS =========="
+          nslookup qidian.sxtvs.com || true
+
+          echo ""
+          echo "========== 直播 CDN DNS =========="
+          nslookup stream.snrtv.com || true
 
       # 5. 测试主站 HTTP 和 HTTPS
       - name: Test SNRTV HTTP and HTTPS
@@ -203,7 +211,80 @@ jobs:
             'https?://[^" )]+' \
             /tmp/snrtv_js/*.js 2>/dev/null | sort -u | head -100 || true
 
-      # 9. 检查网页 HTML
+      # 9. 新增：测试起点新闻 API
+      - name: Test Qidian TV API
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/qidian_api
+
+          echo "========== 测试起点新闻电视节目 API =========="
+
+          for channel in star nl 1 2 3 5 7 11
+          do
+            echo ""
+            echo "========== channel=$channel =========="
+
+            curl -4 -L -sS \
+              --connect-timeout 10 \
+              --max-time 20 \
+              -A "Mozilla/5.0" \
+              -H "Referer: http://m.snrtv.com/snrtv_tv/index.html" \
+              "https://qidian.sxtvs.com/api/v3/program/tv?channel=$channel" \
+              -D "/tmp/qidian_api/header_$channel.txt" \
+              -o "/tmp/qidian_api/$channel.txt" \
+              -w "HTTP=%{http_code} CONNECT=%{time_connect}s TOTAL=%{time_total}s SIZE=%{size_download}\n" \
+              || true
+
+            echo "--- 响应头 ---"
+            head -n 8 "/tmp/qidian_api/header_$channel.txt" 2>/dev/null || true
+
+            echo "--- 返回内容前500字符 ---"
+            head -c 500 "/tmp/qidian_api/$channel.txt" 2>/dev/null || true
+
+            echo ""
+          done
+
+      # 10. 新增：测试直播流 CDN
+      - name: Test SNRTV Live Stream
+        continue-on-error: true
+        run: |
+          echo "========== 测试已知新闻资讯直播流 =========="
+
+          STREAM_URL="http://stream.snrtv.com/sxbc-1-ejkmt9.m3u8"
+
+          echo ""
+          echo "========== HTTP 测试 =========="
+
+          curl -4 -L -sS \
+            --connect-timeout 10 \
+            --max-time 20 \
+            -A "Mozilla/5.0" \
+            "$STREAM_URL" \
+            -o /tmp/test_stream_http.txt \
+            -w "HTTP=%{http_code} CONNECT=%{time_connect}s TOTAL=%{time_total}s SIZE=%{size_download}\n" \
+            || true
+
+          echo ""
+          echo "========== HTTPS 测试 =========="
+
+          curl -4 -L -sS \
+            --connect-timeout 10 \
+            --max-time 20 \
+            -A "Mozilla/5.0" \
+            "${STREAM_URL/http:/https:}" \
+            -o /tmp/test_stream_https.txt \
+            -w "HTTP=%{http_code} CONNECT=%{time_connect}s TOTAL=%{time_total}s SIZE=%{size_download}\n" \
+            || true
+
+          echo ""
+          echo "========== HTTP 返回内容 =========="
+          head -c 1000 /tmp/test_stream_http.txt 2>/dev/null || true
+
+          echo ""
+          echo "========== HTTPS 返回内容 =========="
+          head -c 1000 /tmp/test_stream_https.txt 2>/dev/null || true
+
+      # 11. 检查网页 HTML
       - name: Inspect SNRTV HTML
         continue-on-error: true
         run: |
@@ -226,7 +307,7 @@ jobs:
           echo "========== HTML 文件大小 =========="
           wc -c /tmp/http.html 2>/dev/null || true
 
-      # 10. 分析陕西广电频道数据
+      # 12. 分析陕西广电频道数据
       - name: Analyze SNRTV channel data
         continue-on-error: true
         run: |
@@ -261,7 +342,7 @@ jobs:
             /tmp/http.html \
             /tmp/snrtv_js/*.js 2>/dev/null || true
 
-      # 11. 执行原有抓取程序
+      # 13. 执行原有抓取程序
       - name: Run fetch_stream
         uses: nick-fields/retry@v4
         with:
@@ -270,7 +351,7 @@ jobs:
           retry_wait_seconds: 1800
           command: python ${{ github.workspace }}/fetch_streams.py
 
-      # 12. 检查 M3U 文件
+      # 14. 检查 M3U 文件
       - name: Check M3U file
         if: always()
         run: |
@@ -284,7 +365,7 @@ jobs:
             echo "警告：ShaanxiTV.m3u 不存在或为空"
           fi
 
-      # 13. 提交 M3U 文件
+      # 15. 提交 M3U 文件
       - name: Commit M3U file
         if: success()
         run: |
