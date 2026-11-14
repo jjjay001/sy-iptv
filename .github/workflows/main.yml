@@ -41,7 +41,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install selenium requests futures eventlet beautifulsoup4
+          pip install selenium requests futures eventlet beautifulsoup4 pycryptodome
 
       # 4. 测试主站 DNS
       - name: Test SNRTV DNS
@@ -89,12 +89,10 @@ jobs:
           echo "========== 下载文件检查 =========="
           ls -lh /tmp/http.html /tmp/https.html 2>/dev/null || true
 
-      # 6. 逐个测试主站 IP
+      # 6. 测试主站 IP
       - name: Test SNRTV IP connectivity
         continue-on-error: true
         run: |
-          echo "========== 逐个测试主站 IP =========="
-
           for ip in \
             59.108.133.175 \
             59.108.133.171 \
@@ -105,7 +103,6 @@ jobs:
             59.108.133.179 \
             59.108.133.173
           do
-            echo ""
             echo "========== 测试 $ip =========="
 
             curl -4 -sS \
@@ -118,56 +115,29 @@ jobs:
               || true
           done
 
-      # 7. 测试静态资源 CDN 网络
+      # 7. 测试静态 CDN
       - name: Test SNRTV CDN connection
         continue-on-error: true
         run: |
           CDN_URL="http://res.cnwest.com/t/site/10001/a209bcf3e52b0593bd2c51ae47c9d6ab/assets/snrtv2020/js/EmperorNewClothes.js"
 
-          echo "========== CDN DNS =========="
-          nslookup res.cnwest.com || true
-
-          echo ""
-          echo "========== CDN IPv4 HTTP =========="
-
-          curl -4 -v -L \
+          curl -4 -L -sS \
             --connect-timeout 15 \
             --max-time 30 \
             -A "Mozilla/5.0" \
             "$CDN_URL" \
             -o /tmp/cdn_test.js \
-            -w "\nHTTP状态码: %{http_code}\n连接时间: %{time_connect}\n总时间: %{time_total}\n下载大小: %{size_download}\n" || true
+            -w "\nHTTP状态码: %{http_code}\n下载大小: %{size_download}\n" || true
 
-          echo ""
-          echo "========== CDN HTTPS =========="
+          ls -lh /tmp/cdn_test.js 2>/dev/null || true
 
-          curl -4 -v -L \
-            --connect-timeout 15 \
-            --max-time 30 \
-            -A "Mozilla/5.0" \
-            "${CDN_URL/http:/https:}" \
-            -o /tmp/cdn_test_https.js \
-            -w "\nHTTPS状态码: %{http_code}\n连接时间: %{time_connect}\n总时间: %{time_total}\n下载大小: %{size_download}\n" || true
-
-          echo ""
-          echo "========== CDN 下载文件 =========="
-          ls -lh /tmp/cdn_test* 2>/dev/null || true
-
-          if [ -s /tmp/cdn_test.js ]; then
-            echo ""
-            echo "========== JS 文件前 20 行 =========="
-            head -20 /tmp/cdn_test.js
-          fi
-
-      # 8. 下载并检查网页 JS 文件
+      # 8. 下载网页相关 JS
       - name: Inspect SNRTV JavaScript
         continue-on-error: true
         run: |
           BASE="http://res.cnwest.com/t/site/10001/a209bcf3e52b0593bd2c51ae47c9d6ab/assets"
 
           mkdir -p /tmp/snrtv_js
-
-          echo "========== 下载 JS 文件 =========="
 
           for item in \
             "snrtv2020/js/EmperorNewClothes.js" \
@@ -179,49 +149,28 @@ jobs:
           do
             filename=$(basename "$item")
 
-            echo ""
-            echo "========== $filename =========="
+            echo "========== 下载 $filename =========="
 
             curl -4 -L -sS \
               --connect-timeout 15 \
               --max-time 30 \
+              --retry 2 \
               -A "Mozilla/5.0" \
               "$BASE/$item" \
               -o "/tmp/snrtv_js/$filename" \
-              -w "HTTP状态码: %{http_code}\n连接时间: %{time_connect}\n总时间: %{time_total}\n下载大小: %{size_download}\n" || true
+              -w "HTTP=%{http_code} SIZE=%{size_download}\n" || true
 
-            if [ -s "/tmp/snrtv_js/$filename" ]; then
-              wc -c "/tmp/snrtv_js/$filename"
-            else
-              echo "文件下载失败或为空"
-            fi
+            ls -lh "/tmp/snrtv_js/$filename" 2>/dev/null || true
           done
 
-          echo ""
-          echo "========== 搜索频道及接口关键词 =========="
-
-          grep -Ein \
-            'ajax|api|json|channel|channelName|channelId|live|m3u8|mp4|videoBox|play|tvList|tvlist|source|url:' \
-            /tmp/snrtv_js/*.js 2>/dev/null | head -200 || true
-
-          echo ""
-          echo "========== 搜索接口地址 =========="
-
-          grep -Eo \
-            'https?://[^" )]+' \
-            /tmp/snrtv_js/*.js 2>/dev/null | sort -u | head -100 || true
-
-      # 9. 测试起点新闻 API
+      # 9. 测试起点新闻 API（保留原有诊断）
       - name: Test Qidian TV API
         continue-on-error: true
         run: |
           mkdir -p /tmp/qidian_api
 
-          echo "========== 测试起点新闻电视节目 API =========="
-
           for channel in star nl 1 2 3 5 7 11
           do
-            echo ""
             echo "========== channel=$channel =========="
 
             curl -4 -L -sS \
@@ -230,59 +179,29 @@ jobs:
               -A "Mozilla/5.0" \
               -H "Referer: http://m.snrtv.com/snrtv_tv/index.html" \
               "https://qidian.sxtvs.com/api/v3/program/tv?channel=$channel" \
-              -D "/tmp/qidian_api/header_$channel.txt" \
               -o "/tmp/qidian_api/$channel.txt" \
-              -w "HTTP=%{http_code} CONNECT=%{time_connect}s TOTAL=%{time_total}s SIZE=%{size_download}\n" \
-              || true
+              -w "HTTP=%{http_code} SIZE=%{size_download}\n" || true
 
-            echo "--- 响应头 ---"
-            head -n 8 "/tmp/qidian_api/header_$channel.txt" 2>/dev/null || true
-
-            echo "--- 返回内容前500字符 ---"
-            head -c 500 "/tmp/qidian_api/$channel.txt" 2>/dev/null || true
-
+            head -c 300 "/tmp/qidian_api/$channel.txt" 2>/dev/null || true
             echo ""
           done
 
-      # 10. 测试直播流 CDN
+      # 10. 测试已知直播流
       - name: Test SNRTV Live Stream
         continue-on-error: true
         run: |
-          echo "========== 测试已知新闻资讯直播流 =========="
-
           STREAM_URL="http://stream.snrtv.com/sxbc-1-ejkmt9.m3u8"
-
-          echo ""
-          echo "========== HTTP 测试 =========="
 
           curl -4 -L -sS \
             --connect-timeout 10 \
             --max-time 20 \
             -A "Mozilla/5.0" \
             "$STREAM_URL" \
-            -o /tmp/test_stream_http.txt \
-            -w "HTTP=%{http_code} CONNECT=%{time_connect}s TOTAL=%{time_total}s SIZE=%{size_download}\n" \
-            || true
+            -o /tmp/test_stream.txt \
+            -w "HTTP=%{http_code} CONNECT=%{time_connect}s SIZE=%{size_download}\n" || true
 
-          echo ""
-          echo "========== HTTPS 测试 =========="
-
-          curl -4 -L -sS \
-            --connect-timeout 10 \
-            --max-time 20 \
-            -A "Mozilla/5.0" \
-            "${STREAM_URL/http:/https:}" \
-            -o /tmp/test_stream_https.txt \
-            -w "HTTP=%{http_code} CONNECT=%{time_connect}s TOTAL=%{time_total}s SIZE=%{size_download}\n" \
-            || true
-
-          echo ""
-          echo "========== HTTP 返回内容 =========="
-          head -c 1000 /tmp/test_stream_http.txt 2>/dev/null || true
-
-          echo ""
-          echo "========== HTTPS 返回内容 =========="
-          head -c 1000 /tmp/test_stream_https.txt 2>/dev/null || true
+          echo "========== 直播流返回内容 =========="
+          head -c 1000 /tmp/test_stream.txt 2>/dev/null || true
 
       # 11. 检查网页 HTML
       - name: Inspect SNRTV HTML
@@ -291,60 +210,19 @@ jobs:
           echo "========== 页面标题 =========="
           grep -o '<title>[^<]*</title>' /tmp/http.html 2>/dev/null || true
 
-          echo ""
-          echo "========== 频道容器 =========="
-          grep -Ein \
-            'channelName|channelCur|videoBox|channel|m3u8|ajax' \
-            /tmp/http.html 2>/dev/null | head -100 || true
+          echo "========== 页面频道关键词 =========="
+          grep -Ein 'channelName|videoBox|m3u8|sTV|sRadio' \
+            /tmp/http.html 2>/dev/null | head -50 || true
 
-          echo ""
-          echo "========== 页面脚本 =========="
-          grep -Ein \
-            'script|channel|m3u8|ajax|api|json' \
-            /tmp/http.html 2>/dev/null | tail -100 || true
-
-          echo ""
-          echo "========== HTML 文件大小 =========="
           wc -c /tmp/http.html 2>/dev/null || true
 
-      # 12. 分析陕西广电频道数据
-      - name: Analyze SNRTV channel data
-        continue-on-error: true
-        run: |
-          echo "========== 网页内嵌配置 130-185 行 =========="
-          sed -n '130,185p' /tmp/http.html 2>/dev/null || true
-
-          echo ""
-          echo "========== sTV / sRadio 变量检查 =========="
-
-          grep -nE 'sTV|sRadio' /tmp/http.html 2>/dev/null | head -30 || true
-
-          echo ""
-          echo "========== EmperorNewClothes.js =========="
-          cat /tmp/snrtv_js/EmperorNewClothes.js 2>/dev/null || true
-
-          echo ""
-          echo "========== dress.js =========="
-          cat /tmp/snrtv_js/dress.js 2>/dev/null || true
-
-          echo ""
-          echo "========== programGuides.js =========="
-          sed -n '1,280p' /tmp/snrtv_js/programGuides.js 2>/dev/null || true
-
-          echo ""
-          echo "========== 频道数据关键变量 =========="
-          grep -nE \
-            'sTV|sRadio|videoHashMap|radioHashMap|Undress|loadScript|snr_Playlist|curPlaylist' \
-            /tmp/http.html \
-            /tmp/snrtv_js/*.js 2>/dev/null || true
-
-      # 13. 新增：定位 sTV 和 sRadio 的来源
-      - name: Find sTV and sRadio source
+      # 12. 从网页提取 JS，并下载 stream.js
+      - name: Find SNRTV stream.js
         continue-on-error: true
         run: |
           mkdir -p /tmp/snrtv_js/linked
 
-          echo "========== 从 HTML 提取 script 地址并下载 =========="
+          echo "========== 从 HTML 提取 JS =========="
 
           python - <<'PY'
           import os
@@ -356,150 +234,271 @@ jobs:
           save_dir = "/tmp/snrtv_js/linked"
           os.makedirs(save_dir, exist_ok=True)
 
-          if not os.path.isfile(html_path):
-              print("HTML 文件不存在")
-              raise SystemExit(0)
+          if os.path.isfile(html_path):
+              with open(html_path, encoding="utf-8", errors="ignore") as f:
+                  html = f.read()
 
-          html = open(html_path, encoding="utf-8", errors="ignore").read()
-
-          urls = re.findall(
-              r'<script[^>]+src\s*=\s*["\']([^"\']+)',
-              html,
-              re.I
-          )
-
-          print("发现 script 数量:", len(urls))
-
-          session = requests.Session()
-          session.headers.update({
-              "User-Agent": "Mozilla/5.0",
-              "Referer": "http://m.snrtv.com/snrtv_tv/index.html"
-          })
-
-          for src in urls:
-              url = urljoin(
-                  "http://m.snrtv.com/snrtv_tv/index.html",
-                  src
+              urls = re.findall(
+                  r'<script[^>]+src\s*=\s*["\']([^"\']+)',
+                  html,
+                  re.I
               )
 
-              if not url.lower().split("?")[0].endswith(".js"):
-                  continue
+              print("发现 script 数量:", len(urls))
 
-              name = os.path.basename(urlparse(url).path)
-              if not name:
-                  continue
+              session = requests.Session()
+              session.headers.update({
+                  "User-Agent": "Mozilla/5.0",
+                  "Referer": "http://m.snrtv.com/snrtv_tv/index.html"
+              })
 
-              path = os.path.join(save_dir, name)
-
-              try:
-                  r = session.get(url, timeout=20)
-                  print(
-                      "JS:", url,
-                      "HTTP:", r.status_code,
-                      "SIZE:", len(r.content)
+              for src in urls:
+                  url = urljoin(
+                      "http://m.snrtv.com/snrtv_tv/index.html",
+                      src
                   )
 
-                  if r.ok and r.content:
-                      with open(path, "wb") as f:
-                          f.write(r.content)
-              except Exception as e:
-                  print("下载失败:", url, str(e))
+                  if not url.lower().split("?")[0].endswith(".js"):
+                      continue
+
+                  name = os.path.basename(urlparse(url).path)
+                  if not name:
+                      continue
+
+                  path = os.path.join(save_dir, name)
+
+                  try:
+                      r = session.get(url, timeout=20)
+                      print("JS:", url, "HTTP:", r.status_code,
+                            "SIZE:", len(r.content))
+
+                      if r.ok and r.content:
+                          with open(path, "wb") as f:
+                              f.write(r.content)
+                  except Exception as e:
+                      print("下载失败:", url, str(e))
+          else:
+              print("HTML 不存在，尝试直接下载 stream.js")
           PY
 
           echo ""
-          echo "========== 搜索所有 JS 和 HTML 中的变量 =========="
+          echo "========== 直接下载已确认的 stream.js =========="
 
-          python - <<'PY'
+          curl -4 -fL -sS \
+            --connect-timeout 15 \
+            --max-time 60 \
+            --retry 5 \
+            --retry-all-errors \
+            -A "Mozilla/5.0" \
+            "http://toutiao.cnwest.com/static/v1/stream.js" \
+            -o /tmp/snrtv_js/linked/stream.js \
+            -w "\nHTTP=%{http_code} SIZE=%{size_download}\n" || true
+
+          echo ""
+          echo "========== stream.js 文件检查 =========="
+
+          if [ -s /tmp/snrtv_js/linked/stream.js ]; then
+            wc -c /tmp/snrtv_js/linked/stream.js
+
+            echo "========== 检查 sTV 和 sRadio =========="
+            grep -oE 'var sTV=|var sRadio=' \
+              /tmp/snrtv_js/linked/stream.js || true
+          else
+            echo "错误：stream.js 下载失败或文件为空"
+          fi
+
+          echo ""
+          echo "========== JS 文件清单 =========="
+          find /tmp/snrtv_js -type f -printf '%p %s bytes\n' || true
+
+      # 13. 解密全部频道并生成 M3U
+      - name: Decrypt SNRTV channels and generate M3U
+        run: |
+          cat > /tmp/generate_snrtv_m3u.py <<'PY'
           import os
           import re
+          import json
+          import base64
+          from Crypto.Cipher import AES
 
-          roots = [
-              "/tmp/http.html",
-              "/tmp/snrtv_js"
-          ]
+          JS_PATH = "/tmp/snrtv_js/linked/stream.js"
+          OUTPUT = "ShaanxiTV.m3u"
 
-          keywords = [
-              "sTV",
-              "sRadio",
-              "EmperorNewClothes",
-              "Dressing",
-              "Undress",
-              "videoHashMap",
-              "m3u8"
-          ]
+          print("========== 读取 stream.js ==========")
 
-          files = []
+          if not os.path.isfile(JS_PATH):
+              raise RuntimeError("找不到 stream.js")
 
-          for root in roots:
-              if not os.path.exists(root):
-                  continue
+          with open(JS_PATH, "r", encoding="utf-8", errors="ignore") as f:
+              js = f.read()
 
-              if os.path.isfile(root):
-                  files.append(root)
-                  continue
+          print("JS 文件大小:", len(js))
 
-              for base, _, names in os.walk(root):
-                  for name in names:
-                      if name.lower().endswith((".js", ".html")):
-                          files.append(os.path.join(base, name))
+          def get_var(name):
+              pattern = (
+                  r'\b(?:var|let|const)\s+'
+                  + re.escape(name)
+                  + r'\s*=\s*["\']([^"\']+)["\']'
+              )
 
-          for path in files:
-              try:
-                  with open(path, "r", encoding="utf-8",
-                            errors="ignore") as f:
-                      content = f.read()
-              except Exception:
-                  continue
+              match = re.search(pattern, js)
 
-              for keyword in keywords:
-                  matches = list(
-                      re.finditer(re.escape(keyword), content, re.I)
+              if not match:
+                  raise RuntimeError("没有找到变量: " + name)
+
+              return match.group(1)
+
+          sTV = get_var("sTV")
+          sRadio = get_var("sRadio")
+
+          print("sTV 长度:", len(sTV))
+          print("sRadio 长度:", len(sRadio))
+
+          # 对应网页 programGuides.js 中的 AES 参数：
+          # key = sTV.substring(0, 16)
+          # iv  = sRadio.substring(0, 16)
+          key = sTV[:16].encode("utf-8")
+          iv = sRadio[:16].encode("utf-8")
+
+          def decrypt(data, name):
+              encrypted_text = data[16:]
+
+              encrypted = base64.b64decode(encrypted_text)
+
+              if len(encrypted) == 0 or len(encrypted) % 16 != 0:
+                  raise RuntimeError(
+                      name + " 密文长度异常: " + str(len(encrypted))
                   )
 
-                  for match in matches[:15]:
-                      start = max(0, match.start() - 300)
-                      end = min(len(content), match.end() + 500)
+              cipher = AES.new(key, AES.MODE_CBC, iv)
+              raw = cipher.decrypt(encrypted)
 
-                      print("\n==========", path, keyword, "==========")
-                      print(content[start:end].replace("\n", " ")[:1000])
+              # 对应 CryptoJS.pad.ZeroPadding
+              raw = raw.rstrip(b"\x00")
 
+              return raw.decode("utf-8")
+
+          print("========== AES 解密 ==========")
+
+          tv_text = decrypt(sTV, "sTV")
+          radio_text = decrypt(sRadio, "sRadio")
+
+          tv_data = json.loads(tv_text)
+          radio_data = json.loads(radio_text)
+
+          print("电视数据解密成功")
+          print("广播数据解密成功")
+
+          def collect_channels(data):
+              result = []
+
+              def walk(obj):
+                  if isinstance(obj, dict):
+                      for key_name in (
+                          "m3u8", "M3U8", "url", "liveUrl"
+                      ):
+                          value = obj.get(key_name)
+
+                          if (
+                              isinstance(value, str)
+                              and value.startswith(("http://", "https://"))
+                              and ".m3u8" in value.lower()
+                          ):
+                              result.append(obj)
+                              return
+
+                      for value in obj.values():
+                          if isinstance(value, (dict, list)):
+                              walk(value)
+
+                  elif isinstance(obj, list):
+                      for item in obj:
+                          walk(item)
+
+              walk(data)
+
+              # 去重
+              unique = []
+              seen = set()
+
+              for item in result:
+                  url = (
+                      item.get("m3u8")
+                      or item.get("M3U8")
+                      or item.get("url")
+                      or item.get("liveUrl")
+                  )
+
+                  if url and url not in seen:
+                      seen.add(url)
+                      unique.append(item)
+
+              return unique
+
+          channels = collect_channels(tv_data)
+
+          print("========== 电视直播频道 ==========")
+          print("解密出的电视直播频道数量:", len(channels))
+
+          if not channels:
+              print("电视 JSON 内容预览:")
+              print(tv_text[:2000])
+              raise RuntimeError("没有从电视数据中找到 m3u8 直播地址")
+
+          lines = ["#EXTM3U"]
+
+          for index, item in enumerate(channels, 1):
+              name = (
+                  item.get("name")
+                  or item.get("title")
+                  or item.get("channelName")
+                  or item.get("tvName")
+                  or item.get("cname")
+                  or "陕西广电频道" + str(index)
+              )
+
+              url = (
+                  item.get("m3u8")
+                  or item.get("M3U8")
+                  or item.get("url")
+                  or item.get("liveUrl")
+              )
+
+              name = str(name).replace('"', "'").strip()
+              url = str(url).strip()
+
+              if not url.startswith(("http://", "https://")):
+                  continue
+
+              lines.append(
+                  '#EXTINF:-1 tvg-name="{}" group-title="陕西广电",{}'.format(
+                      name, name
+                  )
+              )
+              lines.append(url)
+
+              print("{}：{}".format(name, url))
+
+          if len(lines) <= 1:
+              raise RuntimeError("没有生成有效的 M3U 直播条目")
+
+          with open(OUTPUT, "w", encoding="utf-8") as f:
+              f.write("\n".join(lines) + "\n")
+
+          print("")
+          print("========== 生成完成 ==========")
+          print("电视直播频道:", (len(lines) - 1) // 2)
+          print("M3U 文件:", OUTPUT)
+          print("文件大小:", os.path.getsize(OUTPUT), "bytes")
+
+          print("")
+          print("广播频道数据数量:",
+                len(radio_data) if isinstance(radio_data, list) else "非列表")
           PY
 
-          echo ""
-          echo "========== 专门搜索变量赋值 =========="
+          python /tmp/generate_snrtv_m3u.py
 
-          grep -RInE \
-            '(^|[^[:alnum:]_$])(var[[:space:]]+)?sTV[[:space:]]*=|(^|[^[:alnum:]_$])(var[[:space:]]+)?sRadio[[:space:]]*=|sTV[[:space:]]*:|sRadio[[:space:]]*:' \
-            /tmp/http.html /tmp/snrtv_js 2>/dev/null | head -100 || true
-
-          echo ""
-          echo "========== 搜索 AJAX 和动态加载接口 =========="
-
-          grep -RInE \
-            'ajax|XMLHttpRequest|fetch\(|getJSON|loadScript|jsonp|sTV|sRadio' \
-            /tmp/http.html /tmp/snrtv_js 2>/dev/null | head -200 || true
-
-          echo ""
-          echo "========== 搜索所有 URL =========="
-
-          grep -RahoE \
-            'https?://[^"[:space:]<>)]+' \
-            /tmp/http.html /tmp/snrtv_js 2>/dev/null | sort -u | head -150 || true
-
-          echo ""
-          echo "========== 下载的 JS 文件清单 =========="
-          find /tmp/snrtv_js -type f -printf '%p %s bytes\n' 2>/dev/null || true
-
-      # 14. 执行原有抓取程序
-      - name: Run fetch_stream
-        uses: nick-fields/retry@v4
-        with:
-          timeout_minutes: 10
-          max_attempts: 10
-          retry_wait_seconds: 1800
-          command: python ${{ github.workspace }}/fetch_streams.py
-
-      # 15. 检查 M3U 文件
+      # 14. 检查 M3U 文件
       - name: Check M3U file
         if: always()
         run: |
@@ -508,12 +507,13 @@ jobs:
           if [ -s ShaanxiTV.m3u ]; then
             echo "M3U 文件存在"
             wc -l ShaanxiTV.m3u
-            head -20 ShaanxiTV.m3u
+            head -30 ShaanxiTV.m3u
           else
-            echo "警告：ShaanxiTV.m3u 不存在或为空"
+            echo "错误：ShaanxiTV.m3u 不存在或为空"
+            exit 1
           fi
 
-      # 16. 提交 M3U 文件
+      # 15. 提交 M3U 文件
       - name: Commit M3U file
         if: success()
         run: |
