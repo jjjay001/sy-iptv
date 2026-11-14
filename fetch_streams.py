@@ -6,55 +6,44 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, WebDriverException
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 # ============================================================
-# Chrome 配置 (针对加载超时及 SSL/TLS 协议全面优化)
+# Chrome 配置 (针对 GitHub Actions CI 环境全面优化)
 # ============================================================
 options = webdriver.ChromeOptions()
 options.add_argument('--headless=new')
 options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
 options.add_argument('--disable-gpu')
-options.add_argument('--disable-software-rasterizer')
 options.add_argument('--window-size=1280,800')
 
 # 显式指定语言
 options.add_argument('--lang=zh-CN')
 
-# 忽略 SSL/TLS 错误
+# 忽略 SSL 错误
 options.add_argument('--ignore-certificate-errors')
-options.add_argument('--ignore-ssl-errors=yes')
 options.add_argument('--allow-insecure-localhost')
-options.add_argument('--allow-running-insecure-content')
-options.add_argument('--ssl-version-min=tls1.0')
-options.add_argument('--ssl-version-max=tls1.3')
 
 # 防封与绕过自动化检测
 options.add_argument('--disable-blink-features=AutomationControlled')
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
 
-# 页面加载策略：eager
-options.page_load_strategy = 'eager'
+# 恢复默认的 normal 页面加载策略，确保 JS 和 DOM 完全渲染
+options.page_load_strategy = 'normal'
 
 # 标准 Android Chrome 移动端 User-Agent
 options.add_argument(
     '--user-agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36'
 )
 
-# 开启性能日志监听（用于备用或调试）
-capabilities = DesiredCapabilities.CHROME.copy()
-capabilities['goog:loggingPrefs'] = {'performance': 'ALL'}
-options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
-
 print("正在启动 Chrome...")
 driver = webdriver.Chrome(options=options)
 
-driver.set_page_load_timeout(15)
-driver.set_script_timeout(10)
+# 适当放宽超时时间
+driver.set_page_load_timeout(30)
+driver.set_script_timeout(15)
 
-# 存储结果列表: [(频道名称, 直播源URL)]
 live_sources = []
 
 # 陕西广电频道 data-num 与中文名映射表
@@ -100,11 +89,7 @@ try:
     try:
         driver.get(url_http)
     except TimeoutException:
-        print("捕获到页面加载超时，强制停止页面加载并继续解析...")
-        try:
-            driver.execute_script("window.stop();")
-        except Exception:
-            pass
+        print("捕获到页面加载超时，尝试继续解析...")
 
     try:
         print(f"当前实际 URL: {driver.current_url}")
@@ -112,18 +97,26 @@ try:
     except Exception:
         pass
 
+    # 关键：先等待 body 标签出现，确保页面有内容
+    try:
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.TAG_NAME, "body"))
+        )
+    except TimeoutException:
+        print("[ERROR] 页面 body 加载超时，可能被网络拦截或无响应！")
+
     print("等待频道列表加载...")
-    # 过滤掉 swiper 复制的镜像节点，只获取真实的频道列表
     css_selectors = "#programSwiper .swiper-slide:not(.swiper-slide-duplicate)"
     
     try:
-        WebDriverWait(driver, 10).until(
+        WebDriverWait(driver, 15).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors))
         )
     except TimeoutException:
-        print("警告: 显式等待超时，尝试强行寻找已存在的 DOM 节点...")
+        print("警告: 显式等待频道超时。保存当前页面源码用于排查...")
+        print(driver.page_source[:1000]) # 打印前1000字符查看页面返回了什么
 
-    time.sleep(2)
+    time.sleep(3) # 给予额外时间让 Swiper 渲染完成
 
     slides = driver.find_elements(By.CSS_SELECTOR, css_selectors)
     print(f"检测到共有 {len(slides)} 个真实频道选项")
@@ -137,9 +130,7 @@ try:
         print(f"\n========== 正在获取频道: {channel_name} (data-num={data_num}) ==========")
 
         try:
-            # 点击切换频道
             driver.execute_script("arguments[0].click();", slide)
-            # 尝试调用 swiper 的 slideTo 或强制播放
             driver.execute_script(f"""
             const swiperEl = document.querySelector('#programSwiper') || document.querySelector('.swiper-container');
             if (swiperEl && swiperEl.swiper) {{
@@ -151,8 +142,7 @@ try:
         except Exception as e:
             print(f"触发切台指令失败: {e}")
 
-        # 等待该频道的 m3u8 地址加载刷新
-        time.sleep(1.5)
+        time.sleep(2)
         m3u8_url = get_valid_m3u8_url(timeout=6)
 
         if m3u8_url:
