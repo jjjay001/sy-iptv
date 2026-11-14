@@ -1,3 +1,4 @@
+
 name: update-lives-list
 
 on:
@@ -7,7 +8,7 @@ on:
     branches:
       - main
     paths:
-      - 'fetch_streams.py'  # 仅当 fetch_streams.py 文件被修改时触发
+      - 'fetch_streams.py'
   workflow_dispatch:
 
 jobs:
@@ -18,7 +19,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 拉取完整历史，确保 rebase 顺利执行
+          fetch-depth: 0
 
       # 1. 配置 Python 环境
       - name: Set up Python
@@ -31,16 +32,32 @@ jobs:
         run: |
           pip install selenium requests futures eventlet beautifulsoup4
 
-      # 3. 执行 Python 抓取脚本
-      - name: Run fetch_stream (失败后自动等待 30 分钟重试)
+      # 3. 测试陕西广电网站连通性
+      - name: Test SNRTV connectivity
+        run: |
+          echo "===== DNS解析 ====="
+          nslookup m.snrtv.com
+
+          echo "===== HTTP响应 ====="
+          curl -L -v --max-time 30 \
+            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36" \
+            "http://m.snrtv.com/snrtv_tv/index.html" \
+            -o page.html \
+            -w "\nHTTP状态码: %{http_code}\n最终URL: %{url_effective}\n下载大小: %{size_download}\n"
+
+          echo "===== 页面内容 ====="
+          head -c 2000 page.html || true
+
+      # 4. 执行 Python 抓取脚本
+      - name: Run fetch_stream
         uses: nick-fields/retry@v4
         with:
-          timeout_minutes: 10      # 单次运行超时时间为 10 分钟
-          max_attempts: 10         # 最多尝试 3 次（1次首次执行 + 2次失败重试）
-          retry_wait_seconds: 888 # 失败后等待 1800 秒（30 分钟）再重新抓取
+          timeout_minutes: 10
+          max_attempts: 10
+          retry_wait_seconds: 1800
           command: python ${{ github.workspace }}/fetch_streams.py
 
-      # 4. 将抓取生成的 m3u 文件提交保存回仓库
+      # 5. 将抓取生成的 m3u 文件提交保存回仓库
       - name: 提交结果
         run: |
           git config --global user.email "315723172@qq.com"
