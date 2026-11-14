@@ -9,11 +9,20 @@ on:
       - main
     paths:
       - 'fetch_streams.py'
+      - '.github/workflows/update-lives-list.yml'
   workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-lives-list
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 360
 
     steps:
       # 1. 拉取仓库
@@ -31,6 +40,7 @@ jobs:
       # 3. 安装依赖
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install selenium requests futures eventlet beautifulsoup4
 
       # 4. 测试主站 DNS
@@ -38,7 +48,7 @@ jobs:
         continue-on-error: true
         run: |
           echo "========== 主站 DNS =========="
-          nslookup m.snrtv.com
+          nslookup m.snrtv.com || true
 
       # 5. 测试主站 HTTP 和 HTTPS
       - name: Test SNRTV HTTP and HTTPS
@@ -62,6 +72,10 @@ jobs:
             "https://m.snrtv.com/snrtv_tv/index.html" \
             -o /tmp/https.html \
             -w "\nHTTPS状态码: %{http_code}\n连接时间: %{time_connect}\n总时间: %{time_total}\n" || true
+
+          echo ""
+          echo "========== HTTP 文件检查 =========="
+          ls -lh /tmp/http.html 2>/dev/null || true
 
       # 6. 测试静态资源 CDN 网络
       - name: Test SNRTV CDN connection
@@ -161,19 +175,23 @@ jobs:
         continue-on-error: true
         run: |
           echo "========== 页面标题 =========="
-          grep -o '<title>[^<]*</title>' /tmp/http.html || true
+          grep -o '<title>[^<]*</title>' /tmp/http.html 2>/dev/null || true
 
           echo ""
           echo "========== 频道容器 =========="
           grep -Ein \
             'channelName|channelCur|videoBox|channel|m3u8|ajax' \
-            /tmp/http.html | head -100 || true
+            /tmp/http.html 2>/dev/null | head -100 || true
 
           echo ""
           echo "========== 页面脚本 =========="
           grep -Ein \
             'script|channel|m3u8|ajax|api|json' \
-            /tmp/http.html | tail -100 || true
+            /tmp/http.html 2>/dev/null | tail -100 || true
+
+          echo ""
+          echo "========== HTML 前 130 行 =========="
+          sed -n '1,130p' /tmp/http.html 2>/dev/null || true
 
       # 9. 分析陕西广电频道数据
       - name: Analyze SNRTV channel data
@@ -183,8 +201,53 @@ jobs:
           sed -n '130,185p' /tmp/http.html 2>/dev/null || true
 
           echo ""
+          echo "========== sTV / sRadio 变量检查 =========="
+
+          python - <<'PY'
+          import re
+          import os
+
+          path = "/tmp/http.html"
+
+          if not os.path.exists(path):
+              print("主页文件不存在")
+              raise SystemExit(0)
+
+          with open(path, "r", encoding="utf-8", errors="ignore") as f:
+              html = f.read()
+
+          print("HTML 总长度:", len(html))
+
+          for name in ("sTV", "sRadio"):
+              patterns = [
+                  r'\b(?:var|let|const)\s+' + name + r'\s*=\s*["\']([^"\']*)["\']',
+                  r'\b' + name + r'\s*=\s*["\']([^"\']*)["\']'
+              ]
+
+              match = None
+
+              for pattern in patterns:
+                  match = re.search(pattern, html, re.S)
+                  if match:
+                      break
+
+              if match:
+                  value = match.group(1)
+                  print("{}：找到".format(name))
+                  print("{} 长度：{}".format(name, len(value)))
+                  print("{} 前 40 字符：{}".format(name, value[:40]))
+              else:
+                  print("{}：未找到".format(name))
+
+          PY
+
+          echo ""
           echo "========== EmperorNewClothes.js =========="
           cat /tmp/snrtv_js/EmperorNewClothes.js 2>/dev/null || true
+
+          echo ""
+          echo "========== dress.js =========="
+          cat /tmp/snrtv_js/dress.js 2>/dev/null || true
 
           echo ""
           echo "========== programGuides.js =========="
@@ -206,18 +269,42 @@ jobs:
           retry_wait_seconds: 1800
           command: python ${{ github.workspace }}/fetch_streams.py
 
-      # 11. 提交 M3U 文件
+      # 11. 检查 M3U 文件
+      - name: Check M3U file
+        run: |
+          echo "========== 检查 ShaanxiTV.m3u =========="
+
+          if [ ! -f ShaanxiTV.m3u ]; then
+            echo "M3U 文件不存在"
+            exit 1
+          fi
+
+          SIZE=$(wc -c < ShaanxiTV.m3u)
+          CHANNELS=$(grep -c '^#EXTINF' ShaanxiTV.m3u || true)
+
+          echo "文件大小：$SIZE bytes"
+          echo "频道数量：$CHANNELS"
+
+          if [ "$SIZE" -eq 0 ] || [ "$CHANNELS" -eq 0 ]; then
+            echo "M3U 文件为空或没有频道，停止提交"
+            exit 1
+          fi
+
+          echo "M3U 文件检查通过"
+
+      # 12. 提交 M3U 文件
       - name: Commit M3U file
         run: |
-          git config --global user.email "315723172@qq.com"
-          git config --global user.name "jjjay001"
-
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/jjjay001/sy-iptv.git
-
-          git add .
-
-          git commit -m "ShaanxiTV.m3u文件" || echo "No changes to commit"
+          git config user.email "315723172@qq.com"
+          git config user.name "jjjay001"
 
           git pull --rebase origin main
 
-          git push origin main
+          git add ShaanxiTV.m3u
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "ShaanxiTV.m3u文件"
+            git push origin main
+          fi
