@@ -1,8 +1,6 @@
 #EXTM3U
 #EXTINF:-1 tvg-name="陕西卫视" group-title="陕西广电",陕西卫视
 http://stream.snrtv.com/sxbc-star-eCJP01.m3u8
-#EXTINF:-1 tvg-name="陕西卫视(备用线路)" group-title="陕西广电",陕西卫视(备用线路)
-http://alzbl.snrtv.com/live/sxtv.m3u8
 #EXTINF:-1 tvg-name="农林卫视" group-title="陕西广电",农林卫视
 http://stream.snrtv.com/sxbc-nl-qyCDF1.m3u8
 #EXTINF:-1 tvg-name="新闻资讯" group-title="陕西广电",新闻资讯
@@ -13,9 +11,5 @@ http://stream.snrtv.com/sxbc-2-buzBEG.m3u8
 http://stream.snrtv.com/sxbc-3-bBEFMQ.m3u8
 #EXTINF:-1 tvg-name="秦腔频道" group-title="陕西广电",秦腔频道
 http://stream.snrtv.com/sxbc-5-agpAK6.m3u8
-#EXTINF:-1 tvg-name="乐家购物" group-title="陕西广电",乐家购物
-http://stream.snrtv.com/snrtv-6.m3u8
 #EXTINF:-1 tvg-name="体育休闲" group-title="陕西广电",体育休闲
 http://stream.snrtv.com/sxbc-7-lCJTU5.m3u8
-#EXTINF:-1 tvg-name="移动电视" group-title="陕西广电",移动电视
-http://stream.snrtv.com/sxbc-yd-osV138.m3u8
