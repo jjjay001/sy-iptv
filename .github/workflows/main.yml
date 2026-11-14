@@ -16,39 +16,65 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. 拉取仓库代码
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 1. 配置 Python 环境
+      # 2. 配置 Python 环境
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      # 2. 安装爬虫依赖
+      # 3. 安装爬虫依赖
       - name: Install dependencies
         run: |
           pip install selenium requests futures eventlet beautifulsoup4
 
-      # 3. 测试陕西广电网站连通性
-      - name: Test SNRTV connectivity
+      # 4. 测试 DNS 解析
+      - name: Test SNRTV DNS
+        continue-on-error: true
         run: |
           echo "===== DNS解析 ====="
           nslookup m.snrtv.com
 
-          echo "===== HTTP响应 ====="
-          curl -L -v --max-time 30 \
-            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36" \
+      # 5. 测试 HTTP 和 HTTPS 连通性
+      - name: Test SNRTV HTTP and HTTPS
+        continue-on-error: true
+        run: |
+          echo "===== 测试 HTTP 80 ====="
+          curl -v -L \
+            --connect-timeout 10 \
+            --max-time 20 \
             "http://m.snrtv.com/snrtv_tv/index.html" \
-            -o page.html \
-            -w "\nHTTP状态码: %{http_code}\n最终URL: %{url_effective}\n下载大小: %{size_download}\n"
+            -o /tmp/http.html \
+            -w "\nHTTP状态码: %{http_code}\n连接时间: %{time_connect}\n总时间: %{time_total}\n" || true
 
-          echo "===== 页面内容 ====="
-          head -c 2000 page.html || true
+          echo "===== HTTP页面内容 ====="
+          if [ -f /tmp/http.html ]; then
+            head -c 2000 /tmp/http.html
+          fi
 
-      # 4. 执行 Python 抓取脚本
+          echo ""
+          echo "===== 测试 HTTPS 443 ====="
+          curl -v -L \
+            --connect-timeout 10 \
+            --max-time 20 \
+            "https://m.snrtv.com/snrtv_tv/index.html" \
+            -o /tmp/https.html \
+            -w "\nHTTPS状态码: %{http_code}\n连接时间: %{time_connect}\n总时间: %{time_total}\n" || true
+
+          echo "===== HTTPS页面内容 ====="
+          if [ -f /tmp/https.html ]; then
+            head -c 2000 /tmp/https.html
+          fi
+
+          echo ""
+          echo "===== 连通性测试结束 ====="
+
+      # 6. 执行 Python 抓取脚本，失败后自动重试
       - name: Run fetch_stream
         uses: nick-fields/retry@v4
         with:
@@ -57,13 +83,18 @@ jobs:
           retry_wait_seconds: 1800
           command: python ${{ github.workspace }}/fetch_streams.py
 
-      # 5. 将抓取生成的 m3u 文件提交保存回仓库
+      # 7. 将抓取生成的 m3u 文件提交保存回仓库
       - name: 提交结果
         run: |
           git config --global user.email "315723172@qq.com"
           git config --global user.name "jjjay001"
+
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/jjjay001/sy-iptv.git
+
           git add .
+
           git commit -m "ShaanxiTV.m3u文件" || echo "No changes to commit"
+
           git pull --rebase origin main
+
           git push origin main
