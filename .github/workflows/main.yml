@@ -33,18 +33,19 @@ jobs:
         run: |
           pip install selenium requests futures eventlet beautifulsoup4
 
-      # 4. 测试 DNS 解析
+      # 4. DNS 解析测试
       - name: Test SNRTV DNS
         continue-on-error: true
         run: |
           echo "===== DNS解析 ====="
           nslookup m.snrtv.com
 
-      # 5. 测试 HTTP 和 HTTPS 连通性
+      # 5. HTTP 和 HTTPS 连通性测试
       - name: Test SNRTV HTTP and HTTPS
         continue-on-error: true
         run: |
           echo "===== 测试 HTTP 80 ====="
+
           curl -v -L \
             --connect-timeout 10 \
             --max-time 20 \
@@ -59,6 +60,7 @@ jobs:
 
           echo ""
           echo "===== 测试 HTTPS 443 ====="
+
           curl -v -L \
             --connect-timeout 10 \
             --max-time 20 \
@@ -71,10 +73,20 @@ jobs:
             head -c 2000 /tmp/https.html
           fi
 
-          echo ""
-          echo "===== 连通性测试结束 ====="
+      # 6. 检查网页 JavaScript 和频道接口
+      - name: Inspect SNRTV scripts
+        continue-on-error: true
+        run: |
+          echo "===== 页面标题 ====="
+          grep -o '<title>[^<]*</title>' /tmp/http.html || true
 
-      # 6. 执行 Python 抓取脚本，失败后自动重试
+          echo "===== JavaScript 文件 ====="
+          grep -Eoi '<script[^>]+src="[^"]+"' /tmp/http.html || true
+
+          echo "===== 频道接口关键词 ====="
+          grep -Ein 'ajax|api|json|channel|live|m3u8|play' /tmp/http.html | head -50 || true
+
+      # 7. 执行 Python 抓取脚本，失败后自动重试
       - name: Run fetch_stream
         uses: nick-fields/retry@v4
         with:
@@ -83,7 +95,7 @@ jobs:
           retry_wait_seconds: 1800
           command: python ${{ github.workspace }}/fetch_streams.py
 
-      # 7. 将抓取生成的 m3u 文件提交保存回仓库
+      # 8. 提交生成的 M3U 文件
       - name: 提交结果
         run: |
           git config --global user.email "315723172@qq.com"
