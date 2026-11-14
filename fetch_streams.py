@@ -43,7 +43,7 @@ options.add_argument(
     '--user-agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36'
 )
 
-# 开启性能日志监听（用于捕获网络请求中的 .m3u8 真实接口）
+# 开启性能日志监听（用于备用或调试）
 capabilities = DesiredCapabilities.CHROME.copy()
 capabilities['goog:loggingPrefs'] = {'performance': 'ALL'}
 options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
@@ -57,56 +57,36 @@ driver.set_script_timeout(10)
 # 存储结果列表: [(频道名称, 直播源URL)]
 live_sources = []
 
-# 陕西广电 8 大核心频道映射表
-channel_ys = {
-    0: "陕西卫视",
-    1: "农林卫视",
-    2: "新闻资讯",
-    3: "都市青春",
-    4: "银龄",
-    5: "秦腔",
-    6: "体育休闲",
-    7: "移动"
+# 陕西广电频道 data-num 与中文名映射表
+num_to_name = {
+    "star": "陕西卫视",
+    "nl": "农林卫视",
+    "1": "陕西新闻资讯",
+    "2": "陕西都市青春",
+    "3": "陕西影视频道",
+    "5": "陕西体育休闲",
+    "7": "陕西生活资讯",
+    "11": "陕西移动频道"
 }
 
 additional_sources = [
     ("西安综合", "https://xatv-yt.xiancity.cn/live/1/index.m3u8"),
     ("西安都市", "https://xatv-yt.xiancity.cn/live/2/index.m3u8"),
-   # ("西安商务资讯", "https://xatv-yt.xiancity.cn/live/3/index.m3u8"),
     ("西安影视", "https://xatv-yt.xiancity.cn/live/4/index.m3u8"),
     ("西安丝路", "https://xatv-yt.xiancity.cn/live/5/index.m3u8"),
 ]
 
-def extract_m3u8_from_network_logs():
-    """从 Performance 网络日志中逆向抓取最新发出的 .m3u8 请求"""
-    try:
-        logs = driver.get_log('performance')
-        for entry in reversed(logs):
-            log = json.loads(entry['message'])['message']
-            if log['method'] == 'Network.requestWillBeSent':
-                url = log['params']['request']['url']
-                if '.m3u8' in url and not url.endswith('.html'):
-                    return url
-    except Exception:
-        pass
-    return None
-
-def get_valid_m3u8_url(timeout=8):
-    """多维检索并提取有效的 .m3u8 视频流地址"""
+def get_valid_m3u8_url(timeout=6):
+    """从 video 标签中提取有效的 .m3u8 视频流地址"""
     start_time = time.time()
     while time.time() - start_time < timeout:
-        net_url = extract_m3u8_from_network_logs()
-        if net_url:
-            return net_url
-
         try:
             video = driver.find_element(By.ID, "videoBox")
             src = video.get_attribute("src")
-            if src and (src.endswith(".m3u8") or "m3u8" in src) and not src.startswith("blob:"):
+            if src and (".m3u8" in src) and not src.startswith("blob:"):
                 return src
         except Exception:
             pass
-
         time.sleep(0.5)
     return None
 
@@ -114,9 +94,7 @@ def get_valid_m3u8_url(timeout=8):
 # 主程序
 # ============================================================
 try:
-    # 直接设定为 HTTP URL
     url_http = "http://m.snrtv.com/snrtv_tv/index.html"
-    
     print(f"正在打开网页: {url_http}")
     
     try:
@@ -135,7 +113,8 @@ try:
         pass
 
     print("等待频道列表加载...")
-    css_selectors = "#programSwiper .swiper-slide, .swiper-wrapper .swiper-slide, .channel-list li"
+    # 过滤掉 swiper 复制的镜像节点，只获取真实的频道列表
+    css_selectors = "#programSwiper .swiper-slide:not(.swiper-slide-duplicate)"
     
     try:
         WebDriverWait(driver, 10).until(
@@ -147,33 +126,34 @@ try:
     time.sleep(2)
 
     slides = driver.find_elements(By.CSS_SELECTOR, css_selectors)
-    print(f"检测到共有 {len(slides)} 个频道选项")
+    print(f"检测到共有 {len(slides)} 个真实频道选项")
 
-    # 【优化】主频道共 8 个，抓满 8 个立即跳出，防止在 Swiper loop 镜像节点上浪费时间
-    for idx, slide in enumerate(slides):
-        if len(live_sources) >= len(channel_ys):
-            print("\n已成功获取全部 8 个陕西主频道，终止后续重复节点解析。")
-            break
-
-        channel_name = channel_ys.get(idx, f"陕西频道_{idx}")
-        print(f"\n========== 正在获取频道 [{idx}]: {channel_name} ==========")
+    for slide in slides:
+        data_num = slide.get_attribute("data-num")
+        if not data_num:
+            continue
+            
+        channel_name = num_to_name.get(data_num, f"陕西频道_{data_num}")
+        print(f"\n========== 正在获取频道: {channel_name} (data-num={data_num}) ==========")
 
         try:
+            # 点击切换频道
             driver.execute_script("arguments[0].click();", slide)
+            # 尝试调用 swiper 的 slideTo 或强制播放
             driver.execute_script(f"""
             const swiperEl = document.querySelector('#programSwiper') || document.querySelector('.swiper-container');
             if (swiperEl && swiperEl.swiper) {{
-                swiperEl.swiper.slideTo({idx});
+                swiperEl.swiper.slideNext();
             }}
-            const v = document.getElementById('videoBox') || document.querySelector('video');
+            const v = document.getElementById('videoBox');
             if (v && v.play) {{ v.play(); }}
             """)
         except Exception as e:
             print(f"触发切台指令失败: {e}")
 
-        time.sleep(2)
-
-        m3u8_url = get_valid_m3u8_url(timeout=8)
+        # 等待该频道的 m3u8 地址加载刷新
+        time.sleep(1.5)
+        m3u8_url = get_valid_m3u8_url(timeout=6)
 
         if m3u8_url:
             print(f"成功获取 [{channel_name}] 直播源: {m3u8_url}")
