@@ -1,18 +1,18 @@
 #EXTM3U
 #EXTINF:-1 tvg-name="陕西卫视" group-title="陕西广电",陕西卫视
-http://stream.snrtv.com/sxbc-star-brsuSV.m3u8
+http://stream.snrtv.com/sxbc-star-ehuMT0.m3u8
 #EXTINF:-1 tvg-name="农林卫视" group-title="陕西广电",农林卫视
-http://stream.snrtv.com/sxbc-nl-axCJQ5.m3u8
+http://stream.snrtv.com/sxbc-nl-ghyXY4.m3u8
 #EXTINF:-1 tvg-name="新闻资讯" group-title="陕西广电",新闻资讯
-http://stream.snrtv.com/sxbc-1-hqAST2.m3u8
+http://stream.snrtv.com/sxbc-1-tPRX26.m3u8
 #EXTINF:-1 tvg-name="都市青春" group-title="陕西广电",都市青春
-http://stream.snrtv.com/sxbc-2-aclNU2.m3u8
+http://stream.snrtv.com/sxbc-2-otBDSV.m3u8
 #EXTINF:-1 tvg-name="银龄频道" group-title="陕西广电",银龄频道
-http://stream.snrtv.com/sxbc-3-fjEQX7.m3u8
+http://stream.snrtv.com/sxbc-3-xBJN15.m3u8
 #EXTINF:-1 tvg-name="秦腔频道" group-title="陕西广电",秦腔频道
-http://stream.snrtv.com/sxbc-5-ksxDN2.m3u8
+http://stream.snrtv.com/sxbc-5-tFMOTY.m3u8
 #EXTINF:-1 tvg-name="体育休闲" group-title="陕西广电",体育休闲
-http://stream.snrtv.com/sxbc-7-kwyBZ9.m3u8
+http://stream.snrtv.com/sxbc-7-ghqswy.m3u8
 #EXTINF:-1 tvg-name="西安综合" group-title="西安电视台",西安综合
 https://xatv-yt.xiancity.cn/live/1/index.m3u8
 #EXTINF:-1 tvg-name="西安都市" group-title="西安电视台",西安都市
