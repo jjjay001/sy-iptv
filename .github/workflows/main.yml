@@ -3,7 +3,7 @@ name: update-lives-list
 
 on:
   schedule:
-    - cron: '4 17 * * *'
+    - cron: '0 20 * * *'
 
   push:
     branches:
@@ -23,7 +23,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       # 1. 拉取仓库
@@ -46,28 +46,67 @@ jobs:
 
       # 4. 下载 stream.js
       - name: Download SNRTV stream.js
+        shell: bash
         run: |
           mkdir -p /tmp/snrtv_js/linked
 
-          echo "========== 下载 stream.js =========="
+          URLS=(
+            "https://toutiao.cnwest.com/static/v1/stream.js"
+            "http://toutiao.cnwest.com/static/v1/stream.js"
+          )
 
-          curl -4 -fL -sS \
-            --connect-timeout 15 \
-            --max-time 60 \
-            --retry 5 \
-            --retry-all-errors \
-            -A "Mozilla/5.0" \
-            "http://toutiao.cnwest.com/static/v1/stream.js" \
-            -o /tmp/snrtv_js/linked/stream.js
+          SUCCESS=0
 
-          echo ""
-          echo "========== 文件检查 =========="
+          for URL in "${URLS[@]}"; do
+            echo "========== 尝试下载: $URL =========="
 
-          if [ ! -s /tmp/snrtv_js/linked/stream.js ]; then
-            echo "错误：stream.js 下载失败"
+            for TRY in 1 2 3; do
+              echo "第 $TRY 次尝试"
+
+              if curl -4 -fL -sS \
+                --connect-timeout 30 \
+                --max-time 120 \
+                -A "Mozilla/5.0" \
+                "$URL" \
+                -o /tmp/snrtv_js/linked/stream.js.tmp; then
+
+                if [ -s /tmp/snrtv_js/linked/stream.js.tmp ]; then
+                  mv /tmp/snrtv_js/linked/stream.js.tmp \
+                    /tmp/snrtv_js/linked/stream.js
+
+                  SUCCESS=1
+                  echo "下载成功"
+                  break 2
+                fi
+              fi
+
+              echo "本次下载失败，等待 5 秒"
+              sleep 5
+            done
+          done
+
+          if [ "$SUCCESS" -ne 1 ]; then
+            echo "错误：所有下载地址均无法访问"
+
+            echo "========== DNS 诊断 =========="
+            getent ahosts toutiao.cnwest.com || true
+
+            echo "========== HTTPS 诊断 =========="
+            curl -4 -Iv \
+              --connect-timeout 15 \
+              --max-time 20 \
+              "https://toutiao.cnwest.com/static/v1/stream.js" || true
+
+            echo "========== HTTP 诊断 =========="
+            curl -4 -Iv \
+              --connect-timeout 15 \
+              --max-time 20 \
+              "http://toutiao.cnwest.com/static/v1/stream.js" || true
+
             exit 1
           fi
 
+          echo "========== 文件检查 =========="
           wc -c /tmp/snrtv_js/linked/stream.js
 
       # 5. 解密频道并生成 M3U
@@ -224,7 +263,6 @@ jobs:
                   or "陕西广电频道" + str(index)
               )
 
-              # 过滤频道
               if any(keyword in str(name) for keyword in exclude_keywords):
                   print("跳过频道:", name)
                   continue
@@ -252,7 +290,7 @@ jobs:
               snrtv_count += 1
               print("{}：{}".format(name, url))
 
-          # 固定追加的西安电视台直播源
+          # 固定追加西安电视台频道
           additional_sources = [
               ("西安综合", "https://xatv-yt.xiancity.cn/live/1/index.m3u8"),
               ("西安都市", "https://xatv-yt.xiancity.cn/live/2/index.m3u8"),
@@ -290,7 +328,6 @@ jobs:
           print("M3U 文件:", OUTPUT)
           print("文件大小:", os.path.getsize(OUTPUT), "bytes")
 
-          print("")
           print(
               "广播频道数据数量:",
               len(radio_data) if isinstance(radio_data, list) else "非列表"
