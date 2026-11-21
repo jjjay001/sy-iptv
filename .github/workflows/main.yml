@@ -1,9 +1,9 @@
-
 name: update-lives-list
 
 on:
   schedule:
-    - cron: '0 20 * * *'
+    # 北京时间 04:23 (UTC 20:23)，避开整点队列高峰
+    - cron: '23 20 * * *'
 
   push:
     branches:
@@ -336,7 +336,7 @@ jobs:
 
           python /tmp/generate_snrtv_m3u.py
 
-      # 6. 检查并提交 M3U
+      # 6. 检查并提交 M3U（含每日保活提交）
       - name: Commit M3U file
         run: |
           echo "========== 检查 M3U =========="
@@ -350,32 +350,19 @@ jobs:
           grep -c '^#EXTINF:' ShaanxiTV.m3u
 
           echo ""
-          echo "========== M3U 内容 =========="
-          cat ShaanxiTV.m3u
-
-          echo ""
           echo "========== 配置 Git =========="
-
           git config user.email "315723172@qq.com"
           git config user.name "jjjay001"
 
           echo ""
-          echo "========== 提交文件 =========="
-
+          echo "========== 提交并推送 =========="
           git add ShaanxiTV.m3u
 
           if git diff --cached --quiet; then
-            echo "M3U 内容没有变化，无需提交"
+            echo "M3U 内容无变化，执行空提交以保持仓库活跃"
+            git commit --allow-empty -m "chore: 每日例行检查（直播源无变化）"
           else
             git commit -m "更新陕西广电直播源"
           fi
-
-          echo ""
-          echo "========== 同步远程仓库 =========="
-
-          git pull --rebase origin main
-
-          echo ""
-          echo "========== 推送更新 =========="
 
           git push origin main
