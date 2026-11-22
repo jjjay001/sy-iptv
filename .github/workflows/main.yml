@@ -1,8 +1,9 @@
+
 name: update-lives-list
 
 on:
   schedule:
-    # 北京时间 04:23 (UTC 20:23)，避开整点队列高峰
+    # 北京时间每天 04:23（UTC 前一天 20:23）
     - cron: '23 20 * * *'
 
   push:
@@ -26,6 +27,19 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      # 0. 检查触发时间
+      - name: Check trigger time
+        run: |
+          echo "========== 任务触发时间 =========="
+          echo "UTC时间：$(date -u '+%Y-%m-%d %H:%M:%S')"
+          echo "北京时间：$(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M:%S')"
+          echo "东京时间：$(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M:%S')"
+          echo "触发方式：${{ github.event_name }}"
+          echo "计划执行：每天北京时间 04:23"
+          echo "Cron：23 20 * * *"
+          echo "Runner：${{ runner.os }}"
+          echo "========== 时间检查结束 =========="
+
       # 1. 拉取仓库
       - name: Checkout code
         uses: actions/checkout@v5
@@ -167,7 +181,6 @@ jobs:
               cipher = AES.new(key, AES.MODE_CBC, iv)
               raw = cipher.decrypt(encrypted)
 
-              # 对应 CryptoJS.pad.ZeroPadding
               raw = raw.rstrip(b"\x00")
 
               return raw.decode("utf-8")
@@ -242,7 +255,6 @@ jobs:
 
           lines = ["#EXTM3U"]
 
-          # 不需要写入 M3U 的频道关键词
           exclude_keywords = [
               "备用线路",
               "乐家购物",
@@ -336,7 +348,7 @@ jobs:
 
           python /tmp/generate_snrtv_m3u.py
 
-      # 6. 检查并提交 M3U（含每日保活提交）
+      # 6. 检查并提交 M3U
       - name: Commit M3U file
         run: |
           echo "========== 检查 M3U =========="
