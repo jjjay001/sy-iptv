@@ -35,8 +35,11 @@ jobs:
           echo "北京时间：$(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M:%S')"
           echo "东京时间：$(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M:%S')"
           echo "触发方式：${{ github.event_name }}"
+          echo "Cron表达式：${{ github.event.schedule }}"
           echo "计划执行：每天北京时间 04:23"
-          echo "Cron：23 20 * * *"
+          echo "Run ID：${{ github.run_id }}"
+          echo "Run Number：${{ github.run_number }}"
+          echo "Commit SHA：${{ github.sha }}"
           echo "Runner：${{ runner.os }}"
           echo "========== 时间检查结束 =========="
 
