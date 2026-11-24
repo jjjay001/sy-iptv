@@ -2,8 +2,8 @@ name: update-lives-list
 
 on:
   schedule:
-    # 北京时间每天 04:23（UTC 前一天 20:23）
-    - cron: '23 20 * * *'
+    # 北京时间每天 05:13（UTC 前一天 21:23）
+    - cron: '13 21 * * *'
   push:
     branches: [main]
     paths: ['.github/workflows/update-lives-list.yml']
