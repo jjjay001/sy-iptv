@@ -1,17 +1,12 @@
-
 name: update-lives-list
 
 on:
   schedule:
     # 北京时间每天 04:23（UTC 前一天 20:23）
     - cron: '23 20 * * *'
-
   push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/update-lives-list.yml'
-
+    branches: [main]
+    paths: ['.github/workflows/update-lives-list.yml']
   workflow_dispatch:
 
 permissions:
@@ -24,360 +19,127 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
 
     steps:
-      # 0. 检查触发时间
-      - name: Check trigger time
-        run: |
-          echo "========== 任务触发时间 =========="
-          echo "UTC时间：$(date -u '+%Y-%m-%d %H:%M:%S')"
-          echo "北京时间：$(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M:%S')"
-          echo "东京时间：$(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M:%S')"
-          echo "触发方式：${{ github.event_name }}"
-          echo "Cron表达式：${{ github.event.schedule }}"
-          echo "计划执行：每天北京时间 04:23"
-          echo "Run ID：${{ github.run_id }}"
-          echo "Run Number：${{ github.run_number }}"
-          echo "Commit SHA：${{ github.sha }}"
-          echo "Runner：${{ runner.os }}"
-          echo "========== 时间检查结束 =========="
-
-      # 1. 拉取仓库
       - name: Checkout code
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
 
-      # 2. 配置 Python
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: '3.10'
 
-      # 3. 安装依赖
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pycryptodome requests
+        run: pip install --no-cache-dir pycryptodome
 
-      # 4. 下载 stream.js
-      - name: Download SNRTV stream.js
-        shell: bash
+      - name: Download stream.js
         run: |
           mkdir -p /tmp/snrtv_js/linked
+          curl -4 -fsSL --retry 3 --retry-delay 5 \
+            --connect-timeout 20 --max-time 60 -A "Mozilla/5.0" \
+            "https://toutiao.cnwest.com/static/v1/stream.js" \
+            -o /tmp/snrtv_js/linked/stream.js \
+          || curl -4 -fsSL --retry 3 --retry-delay 5 \
+            --connect-timeout 20 --max-time 60 -A "Mozilla/5.0" \
+            "http://toutiao.cnwest.com/static/v1/stream.js" \
+            -o /tmp/snrtv_js/linked/stream.js
 
-          URLS=(
-            "https://toutiao.cnwest.com/static/v1/stream.js"
-            "http://toutiao.cnwest.com/static/v1/stream.js"
-          )
-
-          SUCCESS=0
-
-          for URL in "${URLS[@]}"; do
-            echo "========== 尝试下载: $URL =========="
-
-            for TRY in 1 2 3; do
-              echo "第 $TRY 次尝试"
-
-              if curl -4 -fL -sS \
-                --connect-timeout 30 \
-                --max-time 120 \
-                -A "Mozilla/5.0" \
-                "$URL" \
-                -o /tmp/snrtv_js/linked/stream.js.tmp; then
-
-                if [ -s /tmp/snrtv_js/linked/stream.js.tmp ]; then
-                  mv /tmp/snrtv_js/linked/stream.js.tmp \
-                    /tmp/snrtv_js/linked/stream.js
-
-                  SUCCESS=1
-                  echo "下载成功"
-                  break 2
-                fi
-              fi
-
-              echo "本次下载失败，等待 5 秒"
-              sleep 5
-            done
-          done
-
-          if [ "$SUCCESS" -ne 1 ]; then
-            echo "错误：所有下载地址均无法访问"
-
-            echo "========== DNS 诊断 =========="
-            getent ahosts toutiao.cnwest.com || true
-
-            echo "========== HTTPS 诊断 =========="
-            curl -4 -Iv \
-              --connect-timeout 15 \
-              --max-time 20 \
-              "https://toutiao.cnwest.com/static/v1/stream.js" || true
-
-            echo "========== HTTP 诊断 =========="
-            curl -4 -Iv \
-              --connect-timeout 15 \
-              --max-time 20 \
-              "http://toutiao.cnwest.com/static/v1/stream.js" || true
-
-            exit 1
-          fi
-
-          echo "========== 文件检查 =========="
-          wc -c /tmp/snrtv_js/linked/stream.js
-
-      # 5. 解密频道并生成 M3U
-      - name: Decrypt SNRTV channels and generate M3U
+      - name: Decrypt and generate M3U
         run: |
-          cat > /tmp/generate_snrtv_m3u.py <<'PY'
-          import os
-          import re
-          import json
-          import base64
+          python - <<'PY'
+          import json, re, base64
           from Crypto.Cipher import AES
 
           JS_PATH = "/tmp/snrtv_js/linked/stream.js"
           OUTPUT = "ShaanxiTV.m3u"
-
-          print("========== 读取 stream.js ==========")
-
-          if not os.path.isfile(JS_PATH):
-              raise RuntimeError("找不到 stream.js")
-
-          with open(JS_PATH, "r", encoding="utf-8", errors="ignore") as f:
-              js = f.read()
-
-          print("JS 文件大小:", len(js))
-
-          def get_var(name):
-              pattern = (
-                  r'\b(?:var|let|const)\s+'
-                  + re.escape(name)
-                  + r'\s*=\s*["\']([^"\']+)["\']'
-              )
-
-              match = re.search(pattern, js)
-
-              if not match:
-                  raise RuntimeError("没有找到变量: " + name)
-
-              return match.group(1)
-
-          sTV = get_var("sTV")
-          sRadio = get_var("sRadio")
-
-          print("sTV 长度:", len(sTV))
-          print("sRadio 长度:", len(sRadio))
-
-          key = sTV[:16].encode("utf-8")
-          iv = sRadio[:16].encode("utf-8")
-
-          def decrypt(data, name):
-              encrypted_text = data[16:]
-              encrypted = base64.b64decode(encrypted_text)
-
-              if len(encrypted) == 0 or len(encrypted) % 16 != 0:
-                  raise RuntimeError(
-                      name + " 密文长度异常: " + str(len(encrypted))
-                  )
-
-              cipher = AES.new(key, AES.MODE_CBC, iv)
-              raw = cipher.decrypt(encrypted)
-
-              raw = raw.rstrip(b"\x00")
-
-              return raw.decode("utf-8")
-
-          print("========== AES 解密 ==========")
-
-          tv_text = decrypt(sTV, "sTV")
-          radio_text = decrypt(sRadio, "sRadio")
-
-          tv_data = json.loads(tv_text)
-          radio_data = json.loads(radio_text)
-
-          print("电视数据解密成功")
-          print("广播数据解密成功")
-
-          def collect_channels(data):
-              result = []
-
-              def walk(obj):
-                  if isinstance(obj, dict):
-                      for key_name in (
-                          "m3u8", "M3U8", "url", "liveUrl"
-                      ):
-                          value = obj.get(key_name)
-
-                          if (
-                              isinstance(value, str)
-                              and value.startswith(("http://", "https://"))
-                              and ".m3u8" in value.lower()
-                          ):
-                              result.append(obj)
-                              return
-
-                      for value in obj.values():
-                          if isinstance(value, (dict, list)):
-                              walk(value)
-
-                  elif isinstance(obj, list):
-                      for item in obj:
-                          walk(item)
-
-              walk(data)
-
-              unique = []
-              seen = set()
-
-              for item in result:
-                  url = (
-                      item.get("m3u8")
-                      or item.get("M3U8")
-                      or item.get("url")
-                      or item.get("liveUrl")
-                  )
-
-                  if url and url not in seen:
-                      seen.add(url)
-                      unique.append(item)
-
-              return unique
-
-          channels = collect_channels(tv_data)
-
-          print("========== 电视直播频道 ==========")
-          print("解密出的电视直播频道数量:", len(channels))
-
-          if not channels:
-              print("电视 JSON 内容预览:")
-              print(tv_text[:2000])
-              raise RuntimeError(
-                  "没有从电视数据中找到 m3u8 直播地址"
-              )
-
-          lines = ["#EXTM3U"]
-
-          exclude_keywords = [
-              "备用线路",
-              "乐家购物",
-              "移动电视"
-          ]
-
-          print("========== 写入陕西广电频道 ==========")
-
-          snrtv_count = 0
-
-          for index, item in enumerate(channels, 1):
-              name = (
-                  item.get("name")
-                  or item.get("title")
-                  or item.get("channelName")
-                  or item.get("tvName")
-                  or item.get("cname")
-                  or "陕西广电频道" + str(index)
-              )
-
-              if any(keyword in str(name) for keyword in exclude_keywords):
-                  print("跳过频道:", name)
-                  continue
-
-              url = (
-                  item.get("m3u8")
-                  or item.get("M3U8")
-                  or item.get("url")
-                  or item.get("liveUrl")
-              )
-
-              name = str(name).replace('"', "'").strip()
-              url = str(url).strip()
-
-              if not url.startswith(("http://", "https://")):
-                  continue
-
-              lines.append(
-                  '#EXTINF:-1 tvg-name="{}" group-title="陕西广电",{}'.format(
-                      name, name
-                  )
-              )
-              lines.append(url)
-
-              snrtv_count += 1
-              print("{}：{}".format(name, url))
-
-          # 固定追加西安电视台频道
-          additional_sources = [
+          EXCLUDE = ("备用线路", "乐家购物", "移动电视")
+          EXTRA_CHANNELS = [
               ("西安综合", "https://xatv-yt.xiancity.cn/live/1/index.m3u8"),
               ("西安都市", "https://xatv-yt.xiancity.cn/live/2/index.m3u8"),
               ("西安影视", "https://xatv-yt.xiancity.cn/live/4/index.m3u8"),
               ("西安丝路", "https://xatv-yt.xiancity.cn/live/5/index.m3u8"),
           ]
 
-          print("")
-          print("========== 追加西安电视台频道 ==========")
+          with open(JS_PATH, "r", encoding="utf-8", errors="ignore") as f:
+              js = f.read()
 
-          xian_count = 0
+          def get_var(name):
+              m = re.search(rf'\b(?:var|let|const)\s+{re.escape(name)}\s*=\s*["\']([^"\']+)["\']', js)
+              if not m:
+                  raise RuntimeError(f"未找到变量: {name}")
+              return m.group(1)
 
-          for name, url in additional_sources:
-              lines.append(
-                  '#EXTINF:-1 tvg-name="{}" group-title="西安电视台",{}'.format(
-                      name, name
-                  )
-              )
+          s_tv = get_var("sTV")
+          s_radio = get_var("sRadio")
+          key = s_tv[:16].encode("utf-8")
+          iv = s_radio[:16].encode("utf-8")
+
+          raw = AES.new(key, AES.MODE_CBC, iv).decrypt(base64.b64decode(s_tv[16:])).rstrip(b"\x00")
+          tv_data = json.loads(raw.decode("utf-8"))
+
+          def pick_url(d):
+              for k in ("m3u8", "M3U8", "url", "liveUrl"):
+                  v = d.get(k)
+                  if isinstance(v, str) and v.startswith(("http://", "https://")) and ".m3u8" in v.lower():
+                      return v.strip()
+              return None
+
+          def pick_name(d, idx):
+              for k in ("name", "title", "channelName", "tvName", "cname"):
+                  v = d.get(k)
+                  if v:
+                      return str(v).replace('"', "'").strip()
+              return f"陕西广电频道{idx}"
+
+          channels, seen = [], set()
+          def walk(obj):
+              if isinstance(obj, dict):
+                  u = pick_url(obj)
+                  if u:
+                      if u not in seen:
+                          seen.add(u)
+                          channels.append((pick_name(obj, len(channels) + 1), u))
+                      return
+                  for v in obj.values():
+                      if isinstance(v, (dict, list)):
+                          walk(v)
+              elif isinstance(obj, list):
+                  for item in obj:
+                      walk(item)
+
+          walk(tv_data)
+          if not channels:
+              raise RuntimeError("未解析出任何 m3u8 频道")
+
+          lines = ["#EXTM3U"]
+          snrtv_count = 0
+          for name, url in channels:
+              if any(kw in name for kw in EXCLUDE):
+                  continue
+              lines.append(f'#EXTINF:-1 tvg-name="{name}" group-title="陕西广电",{name}')
               lines.append(url)
+              snrtv_count += 1
 
-              xian_count += 1
-              print("{}：{}".format(name, url))
-
-          if len(lines) <= 1:
-              raise RuntimeError("没有生成有效的 M3U 直播条目")
+          for name, url in EXTRA_CHANNELS:
+              lines.append(f'#EXTINF:-1 tvg-name="{name}" group-title="西安电视台",{name}')
+              lines.append(url)
 
           with open(OUTPUT, "w", encoding="utf-8") as f:
               f.write("\n".join(lines) + "\n")
 
-          print("")
-          print("========== 生成完成 ==========")
-          print("陕西广电频道:", snrtv_count)
-          print("西安电视台频道:", xian_count)
-          print("总频道数量:", snrtv_count + xian_count)
-          print("M3U 文件:", OUTPUT)
-          print("文件大小:", os.path.getsize(OUTPUT), "bytes")
-
-          print(
-              "广播频道数据数量:",
-              len(radio_data) if isinstance(radio_data, list) else "非列表"
-          )
+          print(f"生成完成: 陕西广电 {snrtv_count} 个, 西安电视台 {len(EXTRA_CHANNELS)} 个")
           PY
 
-          python /tmp/generate_snrtv_m3u.py
-
-      # 6. 检查并提交 M3U
-      - name: Commit M3U file
+      - name: Commit M3U
         run: |
-          echo "========== 检查 M3U =========="
-
-          if [ ! -s ShaanxiTV.m3u ]; then
-            echo "错误：M3U 文件不存在或为空"
-            exit 1
-          fi
-
-          echo "========== 频道数量 =========="
-          grep -c '^#EXTINF:' ShaanxiTV.m3u
-
-          echo ""
-          echo "========== 配置 Git =========="
+          test -s ShaanxiTV.m3u
           git config user.email "315723172@qq.com"
           git config user.name "jjjay001"
-
-          echo ""
-          echo "========== 提交并推送 =========="
           git add ShaanxiTV.m3u
-
           if git diff --cached --quiet; then
-            echo "M3U 内容无变化，执行空提交以保持仓库活跃"
             git commit --allow-empty -m "chore: 每日例行检查（直播源无变化）"
           else
             git commit -m "更新陕西广电直播源"
           fi
-
           git push origin main
