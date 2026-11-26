@@ -3,7 +3,7 @@ name: update-lives-list
 on:
   schedule:
     # 北京时间每天 06:51（UTC 前一天 22:48）
-    - cron: '51 22 * * *'
+    - cron: '51 15 * * *'
   push:
     branches: [main]
     paths: ['.github/workflows/update-lives-list.yml']
